@@ -1,0 +1,121 @@
+.navbar {
+    padding: 0.75rem 0;
+
+    .navbar-brand {
+        font-size: 1.25rem;
+        font-weight: 600;
+
+        img {
+            border-radius: 4px;
+        }
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff !important;
+        }
+
+        &.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff !important;
+        }
+
+        i {
+            margin-right: 0.5rem;
+            width: 16px;
+            text-align: center;
+        }
+    }
+
+    .dropdown-menu {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: #f8f9fa;
+            }
+
+            i {
+                color: #6c757d;
+            }
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+    }
+
+    // User avatar
+    .rounded-circle {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: border-color 0.2s ease;
+
+        &:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+    }
+
+    // Notification badge
+    .badge {
+        font-size: 0.75rem;
+        min-width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+// Mobile responsiveness
+@media (max-width: 991.98px) {
+    .navbar {
+        .navbar-nav {
+            margin-top: 1rem;
+
+            .nav-item {
+                margin-bottom: 0.25rem;
+            }
+        }
+
+        .navbar-nav.ms-auto {
+            margin-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+        }
+    }
+}
+
+// Dark theme adjustments
+.navbar-dark {
+    .navbar-nav .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+
+        &:hover,
+        &:focus {
+            color: #fff;
+        }
+    }
+
+    .navbar-toggler {
+        border-color: rgba(255, 255, 255, 0.3);
+
+        &:focus {
+            box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+        }
+    }
+}

@@ -1,0 +1,54 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <button
+            class="btn btn-outline-light toggle-btn"
+            (click)="toggleSidebar()"
+            [title]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+        >
+            <i class="bi" [class.bi-chevron-left]="!isCollapsed"></i>
+            <i class="bi" [class.bi-chevron-left]="isCollapsed"></i>
+        </button>
+        <span class="sidebar-title" [class.d-none]="isCollapsed">Management</span>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-content">
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item" *ngFor="let item of navigationItems">
+                    <a
+                        class="nav-link"
+                        [routerLink]="item.redirectTo"
+                        routerLinkActive="active"
+                        [routerLinkActiveOptions]="{ exact: true }"
+                        [attr.title]="item.name"
+                    >
+                        <i [class]="item.iconClass" class="nav-icon"></i>
+                        <span class="nav-text" [class.d-none]="isCollapsed">{{ item.name }}</span>
+                        <span class="nav-tooltip" *ngIf="isCollapsed">{{ item.name }}</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="user-info" *ngIf="!isCollapsed">
+            <div class="user-avatar">
+                <img src="/images/default-avatar.png" alt="User Avatar" onerror="this.src='/images/error.png'" />
+            </div>
+            <div class="user-details">
+                <div class="user-name">Admin User</div>
+                <div class="user-role">Administrator</div>
+            </div>
+        </div>
+        <div class="user-avatar-collapsed" *ngIf="isCollapsed" [title]="'Admin User - Administrator'">
+            <img src="/images/default-avatar.png" alt="User Avatar" onerror="this.src='/images/error.png'" />
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" *ngIf="!isCollapsed" (click)="toggleSidebar()"></div>
