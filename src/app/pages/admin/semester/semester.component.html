@@ -1,1 +1,149 @@
-<p>semester works!</p>
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Quản lý học kỳ</h5>
+          <button 
+            type="button" 
+            class="btn btn-primary btn-sm"
+            (click)="openAddModal()">
+            <i class="bi bi-plus-circle me-2"></i>
+            Thêm học kỳ
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Tên học kỳ</th>
+                  <th scope="col">Thời gian bắt đầu</th>
+                  <th scope="col">Thời gian kết thúc</th>
+                  <th scope="col" class="text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let semester of semesters; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ semester.name }}</td>
+                  <td>{{ formatDate(semester.startDate) }}</td>
+                  <td>{{ formatDate(semester.endDate) }}</td>
+                  <td class="text-center">
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-primary btn-sm"
+                      (click)="openEditModal(semester)"
+                      title="Chỉnh sửa">
+                      <i class="bi bi-pencil-square"></i>
+                      Sửa
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="semesters.length === 0">
+                  <td colspan="5" class="text-center text-muted">
+                    Chưa có học kỳ nào
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div 
+    class="modal fade show d-block" 
+    [class.d-none]="!showModal"
+    tabindex="-1" 
+    style="background-color: rgba(0,0,0,0.5);"
+    (click)="closeModal()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ isEditMode ? 'Chỉnh sửa học kỳ' : 'Thêm học kỳ mới' }}
+          </h5>
+          <button 
+            type="button" 
+            class="btn-close" 
+            (click)="closeModal()"
+            aria-label="Close">
+          </button>
+        </div>
+        <div class="modal-body">
+          <form #semesterForm="ngForm">
+            <!-- Tên học kỳ -->
+            <div class="mb-3">
+              <label for="semesterName" class="form-label">
+                Tên học kỳ <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="semesterName"
+                [(ngModel)]="currentSemesterForm.name"
+                name="semesterName"
+                required
+                placeholder="Nhập tên học kỳ">
+            </div>
+
+            <!-- Thời gian bắt đầu -->
+            <div class="mb-3">
+              <label for="startDate" class="form-label">
+                Thời gian bắt đầu <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="date" 
+                class="form-control" 
+                id="startDate"
+                [(ngModel)]="currentSemesterForm.startDate"
+                name="startDate"
+                required
+                [min]="!isEditMode ? getTodayString() : null">
+              <div class="form-text" *ngIf="!isEditMode">
+                Thời gian bắt đầu phải từ hôm nay trở đi
+              </div>
+            </div>
+
+            <!-- Thời gian kết thúc -->
+            <div class="mb-3">
+              <label for="endDate" class="form-label">
+                Thời gian kết thúc <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="date" 
+                class="form-control" 
+                id="endDate"
+                [(ngModel)]="currentSemesterForm.endDate"
+                name="endDate"
+                required
+                [min]="currentSemesterForm.startDate">
+              <div class="form-text">
+                Thời gian kết thúc phải sau thời gian bắt đầu
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="closeModal()">
+            Hủy
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary"
+            (click)="saveSemester()">
+            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
