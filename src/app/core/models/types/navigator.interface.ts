@@ -25,12 +25,6 @@ export const adminNavigationItems: NavigationItem[] = [
         title: 'Manage Courses',
     },
     {
-        iconClass: 'bi bi-easel',
-        redirectTo: '/admin/classes',
-        name: 'Classes',
-        title: 'Manage Classes',
-    },
-    {
         iconClass: 'bi bi-bell',
         redirectTo: '/admin/notifications',
         name: 'Notifications',

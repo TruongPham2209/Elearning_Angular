@@ -1,3 +1,4 @@
+import { AdminClassStudentPage } from './class-student/class-student.component';
 import { AdminSemesterPage } from './semester/semester.component';
 import { AdminClassPage } from './class/class.component';
 import { AdminCoursePage } from './course/course.component';
@@ -11,4 +12,5 @@ export {
     AdminNotificationPage as Notification,
     AdminUserPage as User,
     AdminSemesterPage as Semester,
+    AdminClassStudentPage as ClassStudent,
 };

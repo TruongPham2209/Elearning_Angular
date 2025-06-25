@@ -1,1 +1,177 @@
-<p>class works!</p>
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Quản lý lớp học</h2>
+            <p class="text-muted mb-0" *ngIf="currentCourse">Khóa học: {{ currentCourse.name }}</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassModal">
+            <i class="bi bi-plus-circle me-2"></i>Thêm lớp mới
+        </button>
+    </div>
+
+    <!-- Classes Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Tên lớp</th>
+                            <th scope="col">Ca dạy</th>
+                            <th scope="col">Số học viên</th>
+                            <th scope="col" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let class of classes; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td>
+                                <strong>{{ class.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ class.schedule }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ class.studentCount }} học viên</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        (click)="viewStudents(class.id)"
+                                        title="Xem danh sách học viên"
+                                    >
+                                        <i class="bi bi-people"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        (click)="confirmDelete(class)"
+                                        title="Xóa lớp"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="classes.length === 0">
+                            <td colspan="5" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                                    <p>Chưa có lớp học nào</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Class Modal -->
+<div class="modal fade" id="createClassModal" tabindex="-1" aria-labelledby="createClassModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createClassModalLabel">Tạo lớp mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form #createForm="ngForm">
+                    <div class="mb-3">
+                        <label for="className" class="form-label">Tên lớp <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="className"
+                            [(ngModel)]="newClass.name"
+                            name="className"
+                            required
+                            placeholder="Nhập tên lớp học"
+                        />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="classSchedule" class="form-label">Ca dạy <span class="text-danger">*</span></label>
+                        <select
+                            class="form-select"
+                            id="classSchedule"
+                            [(ngModel)]="newClass.schedule"
+                            name="classSchedule"
+                            required
+                        >
+                            <option value="">Chọn ca dạy</option>
+                            <option value="Sáng (7:30-11:30)">Sáng (7:30-11:30)</option>
+                            <option value="Chiều (13:30-17:30)">Chiều (13:30-17:30)</option>
+                            <option value="Tối (18:30-21:30)">Tối (18:30-21:30)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="studentFile" class="form-label"
+                            >Import danh sách học viên (Excel) <span class="text-danger">*</span></label
+                        >
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="studentFile"
+                            (change)="onFileSelected($event)"
+                            accept=".xlsx,.xls"
+                        />
+                    </div>
+
+                    <div class="alert alert-info" *ngIf="selectedFile">
+                        <i class="bi bi-file-earmark-excel me-2"></i>
+                        <strong>File đã chọn:</strong> {{ selectedFile.name }}
+                        <small class="d-block mt-1">Kích thước: {{ formatFileSize(selectedFile.size) }}</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    [disabled]="!newClass.name || !newClass.schedule"
+                    (click)="createClass()"
+                >
+                    <i class="bi bi-plus-circle me-2"></i>Tạo lớp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <!-- Thêm modal-dialog-centered -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+                    <p class="mb-3">Bạn có chắc chắn muốn xóa lớp</p>
+                    <p class="fw-bold text-danger">{{ classToDelete?.name }}?</p>
+                    <p class="text-muted small">
+                        Hành động này không thể hoàn tác. Các dữ liệu liên quan của lớp sẽ bị xóa theo, hãy đảm bảo tất
+                        cả dữ liệu đã được sao lưu.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" (click)="deleteClass()">
+                    <i class="bi bi-trash me-2"></i>Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

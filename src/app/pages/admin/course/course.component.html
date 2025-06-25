@@ -1,344 +1,342 @@
 <div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <div class="row align-items-center">
-            <div class="col-md-4">
-              <h5 class="card-title mb-0">Quản lý khóa học</h5>
-            </div>
-            <div class="col-md-4">
-              <!-- Semester Selector -->
-              <select 
-                class="form-select" 
-                [(ngModel)]="selectedSemesterId"
-                (ngModelChange)="onSemesterChange()"
-                [disabled]="isLoading">
-                <option value="" disabled>Chọn học kỳ</option>
-                <option *ngFor="let semester of semesters" [value]="semester.id">
-                  {{ semester.name }}
-                </option>
-              </select>
-            </div>
-            <div class="col-md-4 text-end">
-              <button 
-                type="button" 
-                class="btn btn-primary btn-sm"
-                (click)="openAddModal()"
-                [disabled]="isLoading">
-                <i class="bi bi-plus-circle me-2"></i>
-                Thêm khóa học
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card-body">
-          <!-- Loading Overlay -->
-          <div *ngIf="isLoading" class="loading-overlay">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <div class="mt-2">Đang tải dữ liệu...</div>
-          </div>
-
-          <!-- Table -->
-          <div class="table-responsive" [class.loading]="isLoading">
-            <table class="table table-striped table-hover">
-              <thead class="table-dark">
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Tên khóa học</th>
-                  <th scope="col">Số buổi</th>
-                  <th scope="col">Giảng viên</th>
-                  <th scope="col">Email</th>
-                  <th scope="col" class="text-center">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let course of courses; let i = index">
-                  <td>{{ (paginationInfo.currentPage * paginationInfo.pageSize) + i + 1 }}</td>
-                  <td>{{ course.name }}</td>
-                  <td>{{ course.sessions }}</td>
-                  <td>{{ course.instructor.name }}</td>
-                  <td>{{ course.instructor.email }}</td>
-                  <td class="text-center">
-                    <div class="btn-group" role="group">
-                      <button 
-                        type="button" 
-                        class="btn btn-outline-info btn-sm"
-                        (click)="viewClasses(course.id)"
-                        title="Xem các lớp học">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button 
-                        type="button" 
-                        class="btn btn-outline-primary btn-sm"
-                        (click)="openEditModal(course)"
-                        title="Chỉnh sửa">
-                        <i class="bi bi-pencil-square"></i>
-                      </button>
-                      <button 
-                        type="button" 
-                        class="btn btn-outline-danger btn-sm"
-                        (click)="openDeleteModal(course)"
-                        title="Xóa">
-                        <i class="bi bi-trash"></i>
-                      </button>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h5 class="card-title mb-0">Quản lý khóa học</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Semester Selector -->
+                            <select
+                                class="form-select"
+                                [(ngModel)]="selectedSemesterId"
+                                (ngModelChange)="onSemesterChange()"
+                                [disabled]="isLoading"
+                            >
+                                <option value="" disabled>Chọn học kỳ</option>
+                                <option *ngFor="let semester of semesters" [value]="semester.id">
+                                    {{ semester.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                (click)="openAddModal()"
+                                [disabled]="isLoading"
+                            >
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Thêm khóa học
+                            </button>
+                        </div>
                     </div>
-                  </td>
-                </tr>
-                <tr *ngIf="courses.length === 0 && !isLoading">
-                  <td colspan="6" class="text-center text-muted">
-                    Chưa có khóa học nào trong học kỳ này
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <nav *ngIf="paginationInfo.totalPages > 1" class="mt-4">
-            <div class="row align-items-center">
-              <div class="col-md-6">
-                <small class="text-muted">
-                  Hiển thị {{ (paginationInfo.currentPage * paginationInfo.pageSize) + 1 }} - 
-                  {{ getEndIndex() }} 
-                  trong tổng số {{ paginationInfo.totalItems }} khóa học
-                </small>
-              </div>
-              <div class="col-md-6">
-                <ul class="pagination pagination-sm justify-content-end mb-0">
-                  <!-- Previous Button -->
-                  <li class="page-item" [class.disabled]="paginationInfo.currentPage === 0">
-                    <button 
-                      class="page-link" 
-                      (click)="onPageChange(paginationInfo.currentPage - 1)"
-                      [disabled]="paginationInfo.currentPage === 0 || isLoading">
-                      <i class="bi bi-chevron-left"></i>
-                    </button>
-                  </li>
-
-                  <!-- Page Numbers -->
-                  <li 
-                    *ngFor="let page of getDisplayPages()" 
-                    class="page-item"
-                    [class.active]="page === paginationInfo.currentPage"
-                    [class.disabled]="page === -1">
-                    <button 
-                      *ngIf="page !== -1" 
-                      class="page-link" 
-                      (click)="onPageChange(page)"
-                      [disabled]="isLoading">
-                      {{ page + 1 }}
-                    </button>
-                    <span *ngIf="page === -1" class="page-link">...</span>
-                  </li>
-
-                  <!-- Next Button -->
-                  <li class="page-item" [class.disabled]="paginationInfo.currentPage >= paginationInfo.totalPages - 1">
-                    <button 
-                      class="page-link" 
-                      (click)="onPageChange(paginationInfo.currentPage + 1)"
-                      [disabled]="paginationInfo.currentPage >= paginationInfo.totalPages - 1 || isLoading">
-                      <i class="bi bi-chevron-right"></i>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </nav>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add/Edit Modal -->
-  <div 
-    class="modal fade show d-block" 
-    [class.d-none]="!showModal"
-    tabindex="-1" 
-    style="background-color: rgba(0,0,0,0.5);"
-    (click)="closeModal()">
-    <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {{ isEditMode ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới' }}
-          </h5>
-          <button 
-            type="button" 
-            class="btn-close" 
-            (click)="closeModal()"
-            aria-label="Close">
-          </button>
-        </div>
-        <div class="modal-body">
-          <form #courseForm="ngForm">
-            <!-- Tên khóa học -->
-            <div class="mb-3">
-              <label for="courseName" class="form-label">
-                Tên khóa học <span class="text-danger">*</span>
-              </label>
-              <input 
-                type="text" 
-                class="form-control" 
-                id="courseName"
-                [(ngModel)]="currentCourseForm.name"
-                name="courseName"
-                required
-                placeholder="Nhập tên khóa học">
-            </div>
-
-            <!-- Số buổi học -->
-            <div class="mb-3">
-              <label for="sessions" class="form-label">
-                Số buổi học <span class="text-danger">*</span>
-              </label>
-              <input 
-                type="number" 
-                class="form-control" 
-                id="sessions"
-                [(ngModel)]="currentCourseForm.sessions"
-                name="sessions"
-                required
-                min="1"
-                max="20"
-                placeholder="Nhập số buổi học (1-20)">
-              <div class="form-text">Số buổi học từ 1 đến 20</div>
-            </div>
-
-            <!-- Giảng viên -->
-            <div class="mb-3">
-              <label class="form-label">
-                Giảng viên đứng lớp <span class="text-danger">*</span>
-              </label>
-              
-              <!-- Search Input -->
-              <div class="position-relative">
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  [(ngModel)]="instructorSearchTerm"
-                  (input)="onInstructorSearch()"
-                  name="instructorSearch"
-                  placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
-                  autocomplete="off">
-                
-                <!-- Search Results Dropdown -->
-                <div 
-                  *ngIf="filteredInstructors.length > 0" 
-                  class="dropdown-menu show position-absolute w-100 mt-1"
-                  style="max-height: 200px; overflow-y: auto; z-index: 1050;">
-                  <button 
-                    *ngFor="let instructor of filteredInstructors" 
-                    type="button"
-                    class="dropdown-item"
-                    (click)="selectInstructor(instructor)">
-                    <div>
-                      <strong>{{ instructor.name }}</strong>
-                      <br>
-                      <small class="text-muted">{{ instructor.email }}</small>
-                    </div>
-                  </button>
                 </div>
-              </div>
 
-              <!-- Selected Instructor Display -->
-              <div class="mt-2 p-3 border rounded" [class.bg-light]="selectedInstructor">
-                <div *ngIf="selectedInstructor; else noInstructorSelected">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <h6 class="mb-1">{{ selectedInstructor.name }}</h6>
-                      <small class="text-muted">{{ selectedInstructor.email }}</small>
+                <div class="card-body">
+                    <!-- Table -->
+                    <div class="table-responsive" [class.loading]="isLoading">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Tên khóa học</th>
+                                    <th scope="col">Số buổi</th>
+                                    <th scope="col">Giảng viên</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col" class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <!-- Loading Overlay -->
+                                <tr class="loading-overlay" *ngIf="isLoading">
+                                    <td colspan="6" class="text-center">
+                                        <div class="d-flex flex-column justify-content-center align-items-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <div class="mt-2">Đang tải dữ liệu...</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr *ngFor="let course of courses; let i = index">
+                                    <td>{{ paginationInfo.currentPage * paginationInfo.pageSize + i + 1 }}</td>
+                                    <td>{{ course.title }}</td>
+                                    <td>{{ course.totalLessions }}</td>
+                                    <td>{{ course.teacherName }}</td>
+                                    <td>{{ course.teacherId }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-info btn-sm"
+                                                (click)="viewClasses(course.id)"
+                                                title="Xem các lớp học"
+                                            >
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary btn-sm"
+                                                (click)="openEditModal(course)"
+                                                title="Chỉnh sửa"
+                                            >
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                (click)="openDeleteModal(course)"
+                                                title="Xóa"
+                                            >
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="courses.length === 0 && !isLoading">
+                                    <td colspan="6" class="text-center text-muted">
+                                        Chưa có khóa học nào trong học kỳ này
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <button 
-                      type="button" 
-                      class="btn btn-outline-secondary btn-sm"
-                      (click)="clearSelectedInstructor()"
-                      title="Bỏ chọn">
-                      <i class="bi bi-x"></i>
-                    </button>
-                  </div>
-                </div>
-                <ng-template #noInstructorSelected>
-                  <div class="text-muted text-center">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Vui lòng chọn giảng viên
-                  </div>
-                </ng-template>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button 
-            type="button" 
-            class="btn btn-secondary" 
-            (click)="closeModal()">
-            Hủy
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-primary"
-            (click)="saveCourse()"
-            [disabled]="isLoading">
-            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Delete Confirmation Modal -->
-  <div 
-    class="modal fade show d-block" 
-    [class.d-none]="!showDeleteModal"
-    tabindex="-1" 
-    style="background-color: rgba(0,0,0,0.5);"
-    (click)="closeDeleteModal()">
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title text-danger">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Xác nhận xóa
-          </h5>
-          <button 
-            type="button" 
-            class="btn-close" 
-            (click)="closeDeleteModal()">
-          </button>
+                    <!-- Pagination -->
+                    <nav *ngIf="paginationInfo.totalPages > 1" class="mt-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    Hiển thị {{ paginationInfo.currentPage * paginationInfo.pageSize + 1 }} -
+                                    {{ getEndIndex() }}
+                                    trong tổng số {{ paginationInfo.totalItems }} khóa học
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="pagination pagination-sm justify-content-end mb-0">
+                                    <!-- Previous Button -->
+                                    <li class="page-item" [class.disabled]="paginationInfo.currentPage === 0">
+                                        <button
+                                            class="page-link"
+                                            (click)="onPageChange(paginationInfo.currentPage - 1)"
+                                            [disabled]="paginationInfo.currentPage === 0 || isLoading"
+                                        >
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+                                    </li>
+
+                                    <!-- Page Numbers -->
+                                    <li
+                                        *ngFor="let page of getDisplayPages()"
+                                        class="page-item"
+                                        [class.active]="page === paginationInfo.currentPage"
+                                        [class.disabled]="page === -1"
+                                    >
+                                        <button
+                                            *ngIf="page !== -1"
+                                            class="page-link"
+                                            (click)="onPageChange(page)"
+                                            [disabled]="isLoading"
+                                        >
+                                            {{ page + 1 }}
+                                        </button>
+                                        <span *ngIf="page === -1" class="page-link">...</span>
+                                    </li>
+
+                                    <!-- Next Button -->
+                                    <li
+                                        class="page-item"
+                                        [class.disabled]="paginationInfo.currentPage >= paginationInfo.totalPages - 1"
+                                    >
+                                        <button
+                                            class="page-link"
+                                            (click)="onPageChange(paginationInfo.currentPage + 1)"
+                                            [disabled]="
+                                                paginationInfo.currentPage >= paginationInfo.totalPages - 1 || isLoading
+                                            "
+                                        >
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-          <p>Bạn có chắc chắn muốn xóa khóa học này không?</p>
-          <div *ngIf="courseToDelete" class="alert alert-warning">
-            <strong>{{ courseToDelete.name }}</strong><br>
-            <small>Giảng viên: {{ courseToDelete.instructor.name }}</small>
-          </div>
-          <p class="text-muted mb-0">
-            <i class="bi bi-info-circle me-1"></i>
-            Hành động này không thể hoàn tác!
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button 
-            type="button" 
-            class="btn btn-secondary" 
-            (click)="closeDeleteModal()">
-            Hủy
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-danger"
-            (click)="deleteCourse()"
-            [disabled]="isLoading">
-            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-            Xóa
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
+
+    <!-- Add/Edit Modal -->
+    <div
+        class="modal fade show d-block"
+        [class.d-none]="!showModal"
+        tabindex="-1"
+        style="background-color: rgba(0, 0, 0, 0.5)"
+        (click)="closeModal()"
+    >
+        <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {{ isEditMode ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới' }}
+                    </h5>
+                    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form #courseForm="ngForm">
+                        <!-- Tên khóa học -->
+                        <div class="mb-3">
+                            <label for="courseName" class="form-label">
+                                Tên khóa học <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="courseName"
+                                [(ngModel)]="currentCourseForm.name"
+                                name="courseName"
+                                required
+                                placeholder="Nhập tên khóa học"
+                            />
+                        </div>
+
+                        <!-- Số buổi học -->
+                        <div class="mb-3">
+                            <label for="sessions" class="form-label">
+                                Số buổi học <span class="text-danger">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="sessions"
+                                [(ngModel)]="currentCourseForm.totalLessions"
+                                name="sessions"
+                                required
+                                min="1"
+                                max="20"
+                                placeholder="Nhập số buổi học (1-20)"
+                            />
+                            <div class="form-text">Số buổi học từ 1 đến 20</div>
+                        </div>
+
+                        <!-- Giảng viên -->
+                        <div class="mb-3">
+                            <label class="form-label"> Giảng viên đứng lớp <span class="text-danger">*</span> </label>
+
+                            <!-- Search Input -->
+                            <div class="position-relative">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    [(ngModel)]="instructorSearchTerm"
+                                    (input)="onInstructorSearch()"
+                                    name="instructorSearch"
+                                    placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
+                                    autocomplete="off"
+                                />
+
+                                <!-- Search Results Dropdown -->
+                                <div
+                                    *ngIf="filteredInstructors.length > 0"
+                                    class="dropdown-menu show position-absolute w-100 mt-1"
+                                    style="max-height: 200px; overflow-y: auto; z-index: 1050"
+                                >
+                                    <button
+                                        *ngFor="let instructor of filteredInstructors"
+                                        type="button"
+                                        class="dropdown-item"
+                                        (click)="selectInstructor(instructor)"
+                                    >
+                                        <div>
+                                            <strong>{{ instructor.fullName }}</strong>
+                                            <br />
+                                            <small class="text-muted">{{ instructor.email }}</small>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Selected Instructor Display -->
+                            <div class="mt-2 p-3 border rounded" [class.bg-light]="selectedInstructor">
+                                <div *ngIf="selectedInstructor; else noInstructorSelected">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ selectedInstructor.fullName }}</h6>
+                                            <small class="text-muted">{{ selectedInstructor.email }}</small>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            (click)="clearSelectedInstructor()"
+                                            title="Bỏ chọn"
+                                        >
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <ng-template #noInstructorSelected>
+                                    <div class="text-muted text-center">
+                                        <i class="bi bi-person-plus me-2"></i>
+                                        Vui lòng chọn giảng viên
+                                    </div>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="closeModal()">Hủy</button>
+                    <button type="button" class="btn btn-primary" (click)="saveCourse()" [disabled]="isLoading">
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+        class="modal fade show d-block"
+        [class.d-none]="!showDeleteModal"
+        tabindex="-1"
+        style="background-color: rgba(0, 0, 0, 0.5)"
+        (click)="closeDeleteModal()"
+    >
+        <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Xác nhận xóa
+                    </h5>
+                    <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa khóa học này không?</p>
+                    <div *ngIf="courseToDelete" class="alert alert-warning">
+                        <strong>{{ courseToDelete.title }}</strong
+                        ><br />
+                        <small>Giảng viên: {{ courseToDelete.teacherName }}</small>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Hành động này không thể hoàn tác!
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Hủy</button>
+                    <button type="button" class="btn btn-danger" (click)="deleteCourse()" [disabled]="isLoading">
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
