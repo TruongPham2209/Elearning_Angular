@@ -5,6 +5,15 @@
             <h2 class="mb-1">Quản lý lớp học</h2>
             <p class="text-muted mb-0" *ngIf="currentCourse">Khóa học: {{ currentCourse.name }}</p>
         </div>
+        <div class="col-md-4">
+            <!-- Semester Selector -->
+            <select class="form-select">
+                <option value="" disabled>Chọn học kỳ</option>
+                <option *ngFor="let semester of semesters" [value]="semester.id">
+                    {{ semester.name }}
+                </option>
+            </select>
+        </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassModal">
             <i class="bi bi-plus-circle me-2"></i>Thêm lớp mới
         </button>
@@ -19,8 +28,10 @@
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">Tên lớp</th>
+                            <th scope="col">Phòng dạy</th>
+                            <th scope="col">Tên giảng viên</th>
+                            <th scope="col">Email giảng viên</th>
                             <th scope="col">Ca dạy</th>
-                            <th scope="col">Số học viên</th>
                             <th scope="col" class="text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -31,10 +42,17 @@
                                 <strong>{{ class.name }}</strong>
                             </td>
                             <td>
-                                <span class="badge bg-info">{{ class.schedule }}</span>
+                                <span>{{ class.room }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-secondary">{{ class.studentCount }} học viên</span>
+                                <span>{{ class.lecturerName }}</span>
+                            </td>
+                            <td>
+                                <span>{{ class.lecturerEmail }}</span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-info">{{ class.schedule }}</span>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -74,7 +92,7 @@
 
 <!-- Create Class Modal -->
 <div class="modal fade" id="createClassModal" tabindex="-1" aria-labelledby="createClassModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createClassModalLabel">Tạo lớp mới</h5>
@@ -82,6 +100,22 @@
             </div>
             <div class="modal-body">
                 <form #createForm="ngForm">
+                    <div class="mb-3">
+                        <label for="semester" class="form-label">Học kì <span class="text-danger">*</span></label>
+                        <select
+                            class="form-select"
+                            id="semester"
+                            [(ngModel)]="newClass.semesterId"
+                            name="semester"
+                            required
+                        >
+                            <option value="" disabled>Chọn học kỳ</option>
+                            <option *ngFor="let semester of semesters" [value]="semester.id">
+                                {{ semester.name }}
+                            </option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label for="className" class="form-label">Tên lớp <span class="text-danger">*</span></label>
                         <input
@@ -105,10 +139,96 @@
                             required
                         >
                             <option value="">Chọn ca dạy</option>
-                            <option value="Sáng (7:30-11:30)">Sáng (7:30-11:30)</option>
-                            <option value="Chiều (13:30-17:30)">Chiều (13:30-17:30)</option>
-                            <option value="Tối (18:30-21:30)">Tối (18:30-21:30)</option>
+                            <option *ngFor="let shift of shifts" [value]="shift.value">
+                                {{ shift.title }}
+                            </option>
                         </select>
+                    </div>
+
+                    <!-- Chọn các thứ trong tuần -->
+                    <div class="mb-3">
+                        <label class="form-label">Chọn các ngày trong tuần</label>
+                        <div class="row">
+                            <div class="col-4 mb-2" *ngFor="let day of weekDays">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        [value]="day.value"
+                                        [checked]="newClass.daysInWeek.includes(day.value)"
+                                        (change)="onDaySelectionChange($event)"
+                                        id="day{{ day.value }}"
+                                    />
+                                    <label class="form-check-label" [for]="'day' + day.value">
+                                        {{ day.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Giảng viên -->
+                    <div class="mb-3">
+                        <label class="form-label"> Giảng viên đứng lớp <span class="text-danger">*</span> </label>
+
+                        <!-- Search Input -->
+                        <div class="position-relative">
+                            <input
+                                type="text"
+                                class="form-control"
+                                [(ngModel)]="instructorSearchTerm"
+                                (input)="onInstructorSearch()"
+                                name="instructorSearch"
+                                placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
+                                autocomplete="off"
+                            />
+
+                            <!-- Search Results Dropdown -->
+                            <div
+                                *ngIf="filteredInstructors.length > 0"
+                                class="dropdown-menu show position-absolute w-100 mt-1"
+                                style="max-height: 200px; overflow-y: auto; z-index: 1050"
+                            >
+                                <button
+                                    *ngFor="let instructor of filteredInstructors"
+                                    type="button"
+                                    class="dropdown-item"
+                                    (click)="selectInstructor(instructor)"
+                                >
+                                    <div>
+                                        <strong>{{ instructor.fullName }}</strong>
+                                        <br />
+                                        <small class="text-muted">{{ instructor.email }}</small>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Selected Instructor Display -->
+                        <div class="mt-2 p-3 border rounded" [class.bg-light]="selectedInstructor">
+                            <div *ngIf="selectedInstructor; else noInstructorSelected">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ selectedInstructor.fullName }}</h6>
+                                        <small class="text-muted">{{ selectedInstructor.email }}</small>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary btn-sm"
+                                        (click)="clearSelectedInstructor()"
+                                        title="Bỏ chọn"
+                                    >
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <ng-template #noInstructorSelected>
+                                <div class="text-muted text-center">
+                                    <i class="bi bi-person-plus me-2"></i>
+                                    Vui lòng chọn giảng viên
+                                </div>
+                            </ng-template>
+                        </div>
                     </div>
 
                     <div class="mb-3">

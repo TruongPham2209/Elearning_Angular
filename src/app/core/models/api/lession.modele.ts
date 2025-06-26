@@ -1,7 +1,6 @@
-interface LessionRequest {
-}
-
 interface LessionResponse {
+    id: string;
+    name: string;
 }
 
-export type { LessionRequest, LessionResponse };
+export type { LessionResponse };

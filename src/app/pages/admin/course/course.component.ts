@@ -2,8 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SemesterResponse } from '../../../core/models/api/semester.model';
-import { UserResponse } from '../../../core/models/api/user.model';
 import { CourseForm, CourseResponse } from '../../../core/models/api/course.model';
 
 @Component({
@@ -18,61 +16,22 @@ export class AdminCoursePage implements OnInit {
         return Math.min(startIndex + this.paginationInfo.pageSize, this.paginationInfo.totalItems);
     }
 
-    // Sample data
-    semesters: SemesterResponse[] = [
-        {
-            id: '1',
-            name: 'Học kỳ 1 năm 2024-2025',
-            startDate: new Date('2024-09-01'),
-            endDate: new Date('2025-01-15'),
-        },
-        {
-            id: '2',
-            name: 'Học kỳ 2 năm 2024-2025',
-            startDate: new Date('2025-02-01'),
-            endDate: new Date('2025-06-30'),
-        },
-        {
-            id: '3',
-            name: 'Học kỳ hè năm 2025',
-            startDate: new Date('2025-07-01'),
-            endDate: new Date('2025-08-31'),
-        },
-    ];
-
-    instructors: UserResponse[] = [
-        { id: 'ins1', fullName: 'TS. Nguyễn Văn An', email: 'nva@university.edu.vn' },
-        { id: 'ins2', fullName: 'PGS. Trần Thị Bình', email: 'ttb@university.edu.vn' },
-        { id: 'ins3', fullName: 'GS. Lê Văn Cường', email: 'lvc@university.edu.vn' },
-        { id: 'ins4', fullName: 'TS. Phạm Thị Dung', email: 'ptd@university.edu.vn' },
-        { id: 'ins5', fullName: 'ThS. Hoàng Văn Em', email: 'hve@university.edu.vn' },
-        { id: 'ins6', fullName: 'TS. Đặng Thị Phương', email: 'dtp@university.edu.vn' },
-        { id: 'ins7', fullName: 'PGS. Vũ Văn Giang', email: 'vvg@university.edu.vn' },
-        { id: 'ins8', fullName: 'TS. Ngô Thị Hoa', email: 'nth@university.edu.vn' },
-    ];
-
     courses: CourseResponse[] = [];
-    filteredInstructors: UserResponse[] = [];
 
     // Current state
-    selectedSemesterId: string = '';
     isLoading: boolean = false;
     showModal: boolean = false;
     showDeleteModal: boolean = false;
     isEditMode: boolean = false;
+    courseToDelete: CourseResponse | null = null;
 
     // Form data
     currentCourseForm: CourseForm = {
         id: '',
         name: '',
-        totalLessions: 1,
-        teacherId: '',
-        semesterId: '',
+        sessions: 1,
+        shortDescription: '',
     };
-
-    courseToDelete: CourseResponse | null = null;
-    instructorSearchTerm: string = '';
-    selectedInstructor: UserResponse | null = null;
 
     // Pagination
     paginationInfo: any = {
@@ -85,7 +44,6 @@ export class AdminCoursePage implements OnInit {
     constructor(private router: Router) {}
 
     ngOnInit() {
-        this.selectedSemesterId = this.semesters[0]?.id || '';
         this.loadCourses();
     }
 
@@ -112,18 +70,13 @@ export class AdminCoursePage implements OnInit {
         const sampleCourses: CourseResponse[] = [];
 
         for (let i = 0; i < 150; i++) {
-            const instructor = this.instructors[Math.floor(Math.random() * this.instructors.length)];
-            const semesterId = this.semesters[Math.floor(Math.random() * this.semesters.length)].id;
-
             sampleCourses.push({
                 id: `course_${i + 1}`,
-                title:
+                name:
                     courseNames[i % courseNames.length] +
                     (i >= courseNames.length ? ` (Lớp ${Math.floor(i / courseNames.length) + 1})` : ''),
-                totalLessions: Math.floor(Math.random() * 20) + 1,
-                teacherName: instructor.fullName,
-                teacherId: instructor.id,
-                semesterId: semesterId,
+                sessions: Math.floor(Math.random() * 20) + 1,
+                shortDescription: `Mô tả ngắn về khóa học ${i + 1}. Đây là một khóa học thú vị và bổ ích.`,
             });
         }
 
@@ -136,17 +89,16 @@ export class AdminCoursePage implements OnInit {
         // Simulate API call
         setTimeout(() => {
             const allCourses = this.generateSampleCourses();
-            const semesterCourses = allCourses.filter((course) => course.semesterId === this.selectedSemesterId);
 
             const startIndex = page * this.paginationInfo.pageSize;
             const endIndex = startIndex + this.paginationInfo.pageSize;
 
-            this.courses = semesterCourses.slice(startIndex, endIndex);
+            this.courses = allCourses.slice(startIndex, endIndex);
 
             this.paginationInfo = {
                 currentPage: page,
-                totalPages: Math.ceil(semesterCourses.length / this.paginationInfo.pageSize),
-                totalItems: semesterCourses.length,
+                totalPages: Math.ceil(allCourses.length / this.paginationInfo.pageSize),
+                totalItems: allCourses.length,
                 pageSize: this.paginationInfo.pageSize,
             };
 
@@ -193,13 +145,9 @@ export class AdminCoursePage implements OnInit {
         this.currentCourseForm = {
             id: '',
             name: '',
-            totalLessions: 1,
-            teacherId: '',
-            semesterId: this.selectedSemesterId,
+            sessions: 1,
+            shortDescription: '',
         };
-        this.selectedInstructor = null;
-        this.instructorSearchTerm = '';
-        this.filteredInstructors = [];
         this.showModal = true;
     }
 
@@ -207,14 +155,10 @@ export class AdminCoursePage implements OnInit {
         this.isEditMode = true;
         this.currentCourseForm = {
             id: course.id,
-            name: course.title,
-            totalLessions: course.totalLessions,
-            teacherId: course.teacherId,
-            semesterId: course.semesterId,
+            name: course.name,
+            sessions: course.sessions,
+            shortDescription: course.shortDescription,
         };
-        this.selectedInstructor = this.instructors.find((ins) => ins.id === course.teacherId) || null;
-        this.instructorSearchTerm = '';
-        this.filteredInstructors = [];
         this.showModal = true;
     }
 
@@ -237,40 +181,10 @@ export class AdminCoursePage implements OnInit {
         this.currentCourseForm = {
             id: '',
             name: '',
-            totalLessions: 1,
-            teacherId: '',
-            semesterId: '',
+            sessions: 1,
+            shortDescription: '',
         };
-        this.selectedInstructor = null;
-        this.instructorSearchTerm = '';
-        this.filteredInstructors = [];
     }
-
-    // Instructor search functions
-    onInstructorSearch() {
-        if (this.instructorSearchTerm.trim()) {
-            this.filteredInstructors = this.instructors.filter(
-                (instructor) =>
-                    instructor.fullName.toLowerCase().includes(this.instructorSearchTerm.toLowerCase()) ||
-                    instructor.email.toLowerCase().includes(this.instructorSearchTerm.toLowerCase()),
-            );
-        } else {
-            this.filteredInstructors = [];
-        }
-    }
-
-    selectInstructor(instructor: UserResponse) {
-        this.selectedInstructor = instructor;
-        this.currentCourseForm.teacherId = instructor.id;
-        this.instructorSearchTerm = '';
-        this.filteredInstructors = [];
-    }
-
-    clearSelectedInstructor() {
-        this.selectedInstructor = null;
-        this.currentCourseForm.teacherId = '';
-    }
-
     // CRUD operations
     saveCourse() {
         // Validation
@@ -279,13 +193,8 @@ export class AdminCoursePage implements OnInit {
             return;
         }
 
-        if (this.currentCourseForm.totalLessions < 1 || this.currentCourseForm.totalLessions > 20) {
+        if (this.currentCourseForm.sessions < 1 || this.currentCourseForm.sessions > 20) {
             alert('Số buổi học phải từ 1 đến 20!');
-            return;
-        }
-
-        if (!this.currentCourseForm.totalLessions) {
-            alert('Vui lòng chọn giảng viên!');
             return;
         }
 

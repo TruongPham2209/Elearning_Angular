@@ -1,0 +1,368 @@
+// Page Title
+.page-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0;
+
+    &::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        margin-top: 8px;
+    }
+}
+
+// Card Styles
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+
+        .card-title {
+            color: #495057;
+            font-weight: 600;
+
+            i {
+                color: #3498db;
+            }
+        }
+    }
+}
+
+// Accordion Styles
+.accordion {
+    .accordion-item {
+        border: 1px solid #e9ecef;
+        margin-bottom: 0.5rem;
+        border-radius: 8px !important;
+        overflow: hidden;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .accordion-button {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 500;
+        border: none;
+
+        &:not(.collapsed) {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            box-shadow: none;
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+            border-color: #3498db;
+        }
+
+        &::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23495057'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        }
+    }
+
+    .accordion-body {
+        padding: 0;
+    }
+}
+
+// List Group Styles
+.list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 1rem;
+
+    &:first-child {
+        border-top: none;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    h6 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+
+        i {
+            color: #3498db;
+        }
+    }
+
+    small {
+        color: #868e96;
+
+        i {
+            color: #3498db;
+        }
+    }
+
+    &.list-group-item-action {
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            background-color: #e9ecef;
+        }
+    }
+}
+
+// Navigation Tabs
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+
+    .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin-bottom: -2px;
+        background: none;
+        transition: all 0.3s ease;
+
+        &:hover {
+            border-color: transparent;
+            color: #3498db;
+        }
+
+        &.active {
+            color: #3498db;
+            background: none;
+            border-bottom: 2px solid #3498db;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+    }
+}
+
+// Notification Content
+.notification-content {
+    max-height: 400px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+
+        &:hover {
+            background: #a8a8a8;
+        }
+    }
+}
+
+// Pagination
+.pagination {
+    .page-link {
+        color: #3498db;
+        border-color: #dee2e6;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: #2980b9;
+            background-color: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+    }
+
+    .page-item.active .page-link {
+        background-color: #3498db;
+        border-color: #3498db;
+        color: white;
+
+        &:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+}
+
+// Modal Styles
+.modal {
+    &.show {
+        display: block !important;
+    }
+
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
+
+    .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 12px 12px 0 0;
+
+        .modal-title {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 2rem;
+
+        h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .text-muted {
+            i {
+                color: #3498db;
+            }
+        }
+
+        .notification-detail {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            line-height: 1.6;
+            color: #495057;
+        }
+    }
+
+    .modal-footer {
+        border-top: 1px solid #dee2e6;
+        padding: 1rem 2rem;
+
+        .btn {
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: translateY(-1px);
+            }
+        }
+    }
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+
+    &.show {
+        opacity: 1;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .notification-content {
+        max-height: 300px;
+    }
+}
+
+// Animations
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.modal.show .modal-dialog {
+    animation: fadeIn 0.3s ease-out;
+}
+
+// Utility Classes
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Bootstrap Icons (if not using CDN)
+.bi {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    fill: currentcolor;
+}

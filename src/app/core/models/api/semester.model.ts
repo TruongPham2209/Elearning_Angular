@@ -1,8 +1,4 @@
-interface SemesterRequest {
-    name: string;
-    startDate: Date;
-    endDate: Date;
-}
+import { ClassResponse } from './class.model';
 
 interface SemesterForm {
     id: string;
@@ -18,4 +14,10 @@ interface SemesterResponse {
     endDate: Date;
 }
 
-export type { SemesterRequest, SemesterResponse, SemesterForm };
+interface SemesterWithClassesResponse {
+    id: string;
+    title: string;
+    classes: ClassResponse[];
+}
+
+export type { SemesterResponse, SemesterForm, SemesterWithClassesResponse };

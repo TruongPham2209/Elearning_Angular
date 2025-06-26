@@ -1,15 +1,14 @@
 <div class="layout d-flex flex-column min-vh-100">
     <manage-header [managerRole]="manageRole"></manage-header>
     <div class="layout-content d-flex flex-grow-1">
-        <manage-sidebar
+        <admin-sidebar
             class="sidebar"
             [ngClass]="{ collapsed: isSidebarCollapsed }"
-            [managerRole]="manageRole"
             (toggle)="onSidebarToggle($event)"
-        ></manage-sidebar>
+        ></admin-sidebar>
         <main class="content flex-grow-1">
             <router-outlet></router-outlet>
         </main>
     </div>
-    <manage-footer></manage-footer>
+    <app-footer></app-footer>
 </div>

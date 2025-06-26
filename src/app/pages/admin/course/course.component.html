@@ -4,22 +4,8 @@
             <div class="card">
                 <div class="card-header">
                     <div class="row align-items-center">
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                             <h5 class="card-title mb-0">Quản lý khóa học</h5>
-                        </div>
-                        <div class="col-md-4">
-                            <!-- Semester Selector -->
-                            <select
-                                class="form-select"
-                                [(ngModel)]="selectedSemesterId"
-                                (ngModelChange)="onSemesterChange()"
-                                [disabled]="isLoading"
-                            >
-                                <option value="" disabled>Chọn học kỳ</option>
-                                <option *ngFor="let semester of semesters" [value]="semester.id">
-                                    {{ semester.name }}
-                                </option>
-                            </select>
                         </div>
                         <div class="col-md-4 text-end">
                             <button
@@ -44,8 +30,7 @@
                                     <th scope="col">#</th>
                                     <th scope="col">Tên khóa học</th>
                                     <th scope="col">Số buổi</th>
-                                    <th scope="col">Giảng viên</th>
-                                    <th scope="col">Email</th>
+                                    <th scope="col">Mô tả ngắn</th>
                                     <th scope="col" class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
@@ -64,10 +49,9 @@
                                 </tr>
                                 <tr *ngFor="let course of courses; let i = index">
                                     <td>{{ paginationInfo.currentPage * paginationInfo.pageSize + i + 1 }}</td>
-                                    <td>{{ course.title }}</td>
-                                    <td>{{ course.totalLessions }}</td>
-                                    <td>{{ course.teacherName }}</td>
-                                    <td>{{ course.teacherId }}</td>
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.sessions }}</td>
+                                    <td>{{ course.shortDescription }}</td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <button
@@ -214,7 +198,7 @@
                                 type="number"
                                 class="form-control"
                                 id="sessions"
-                                [(ngModel)]="currentCourseForm.totalLessions"
+                                [(ngModel)]="currentCourseForm.sessions"
                                 name="sessions"
                                 required
                                 min="1"
@@ -224,68 +208,20 @@
                             <div class="form-text">Số buổi học từ 1 đến 20</div>
                         </div>
 
-                        <!-- Giảng viên -->
+                        <!-- Mô tả ngắn -->
                         <div class="mb-3">
-                            <label class="form-label"> Giảng viên đứng lớp <span class="text-danger">*</span> </label>
-
-                            <!-- Search Input -->
-                            <div class="position-relative">
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    [(ngModel)]="instructorSearchTerm"
-                                    (input)="onInstructorSearch()"
-                                    name="instructorSearch"
-                                    placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
-                                    autocomplete="off"
-                                />
-
-                                <!-- Search Results Dropdown -->
-                                <div
-                                    *ngIf="filteredInstructors.length > 0"
-                                    class="dropdown-menu show position-absolute w-100 mt-1"
-                                    style="max-height: 200px; overflow-y: auto; z-index: 1050"
-                                >
-                                    <button
-                                        *ngFor="let instructor of filteredInstructors"
-                                        type="button"
-                                        class="dropdown-item"
-                                        (click)="selectInstructor(instructor)"
-                                    >
-                                        <div>
-                                            <strong>{{ instructor.fullName }}</strong>
-                                            <br />
-                                            <small class="text-muted">{{ instructor.email }}</small>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Selected Instructor Display -->
-                            <div class="mt-2 p-3 border rounded" [class.bg-light]="selectedInstructor">
-                                <div *ngIf="selectedInstructor; else noInstructorSelected">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">{{ selectedInstructor.fullName }}</h6>
-                                            <small class="text-muted">{{ selectedInstructor.email }}</small>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-secondary btn-sm"
-                                            (click)="clearSelectedInstructor()"
-                                            title="Bỏ chọn"
-                                        >
-                                            <i class="bi bi-x"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <ng-template #noInstructorSelected>
-                                    <div class="text-muted text-center">
-                                        <i class="bi bi-person-plus me-2"></i>
-                                        Vui lòng chọn giảng viên
-                                    </div>
-                                </ng-template>
-                            </div>
+                            <label for="courseDescription" class="form-label">
+                                Mô tả khóa học <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                class="form-control"
+                                id="courseDescription"
+                                [(ngModel)]="currentCourseForm.shortDescription"
+                                name="courseDescription"
+                                required
+                                placeholder="Nhập mô tả khóa học"
+                                rows="4"
+                            ></textarea>
                         </div>
                     </form>
                 </div>
@@ -320,9 +256,7 @@
                 <div class="modal-body">
                     <p>Bạn có chắc chắn muốn xóa khóa học này không?</p>
                     <div *ngIf="courseToDelete" class="alert alert-warning">
-                        <strong>{{ courseToDelete.title }}</strong
-                        ><br />
-                        <small>Giảng viên: {{ courseToDelete.teacherName }}</small>
+                        <strong>{{ courseToDelete.name }}</strong>
                     </div>
                     <p class="text-muted mb-0">
                         <i class="bi bi-info-circle me-1"></i>

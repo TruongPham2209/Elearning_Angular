@@ -2,15 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { SemesterResponse } from '../../../core/models/api/semester.model';
+import { UserResponse } from '../../../core/models/api/user.model';
+import { ClassResponse } from '../../../core/models/api/class.model';
 
 // Interface cho Class data
-interface ClassData {
-    id: string;
-    name: string;
-    schedule: string;
-    courseId: string;
-    studentCount: number;
-}
 
 // Interface cho Course data
 interface CourseData {
@@ -27,14 +23,85 @@ interface CourseData {
 export class AdminClassPage implements OnInit {
     courseId: string = '';
     currentCourse: CourseData | null = null;
-    classes: ClassData[] = [];
-    classToDelete: ClassData | null = null;
+    classes: ClassResponse[] = [];
+    classToDelete: ClassResponse | null = null;
     selectedFile: File | null = null;
+
+    semesters: SemesterResponse[] = [
+        {
+            id: '1',
+            name: 'Học kỳ 1 năm 2024-2025',
+            startDate: new Date('2024-09-01'),
+            endDate: new Date('2025-01-15'),
+        },
+        {
+            id: '2',
+            name: 'Học kỳ 2 năm 2024-2025',
+            startDate: new Date('2025-02-01'),
+            endDate: new Date('2025-06-30'),
+        },
+        {
+            id: '3',
+            name: 'Học kỳ hè năm 2025',
+            startDate: new Date('2025-07-01'),
+            endDate: new Date('2025-08-31'),
+        },
+    ];
+
+    shifts = [
+        { title: 'Ca 1 (7:00 - 9:00)', value: 1 },
+        { title: 'Ca 2 (9:30 - 11:30)', value: 2 },
+        { title: 'Ca 3 (13:00 - 15:00)', value: 3 },
+        { title: 'Ca 4 (15:30 - 17:30)', value: 4 },
+        { title: 'Ca 5 (18:00 - 20:00)', value: 5 },
+    ];
+
+    weekDays = [
+        { value: 0, label: 'Thứ 2' },
+        { value: 1, label: 'Thứ 3' },
+        { value: 2, label: 'Thứ 4' },
+        { value: 3, label: 'Thứ 5' },
+        { value: 4, label: 'Thứ 6' },
+        { value: 5, label: 'Thứ 7' },
+        { value: 6, label: 'Chủ nhật' },
+    ];
+
+    onDaySelectionChange(event: any) {
+        const dayValue = +event.target.value;
+        if (event.target.checked) {
+            // Thêm nếu được chọn
+            if (!this.newClass.daysInWeek.includes(dayValue)) {
+                this.newClass.daysInWeek.push(dayValue);
+            }
+        } else {
+            // Bỏ nếu bỏ chọn
+            this.newClass.daysInWeek = this.newClass.daysInWeek.filter((day) => day !== dayValue);
+        }
+    }
+
+    instructors: UserResponse[] = [
+        { id: 'ins1', fullName: 'TS. Nguyễn Văn An', email: 'nva@university.edu.vn' },
+        { id: 'ins2', fullName: 'PGS. Trần Thị Bình', email: 'ttb@university.edu.vn' },
+        { id: 'ins3', fullName: 'GS. Lê Văn Cường', email: 'lvc@university.edu.vn' },
+        { id: 'ins4', fullName: 'TS. Phạm Thị Dung', email: 'ptd@university.edu.vn' },
+        { id: 'ins5', fullName: 'ThS. Hoàng Văn Em', email: 'hve@university.edu.vn' },
+        { id: 'ins6', fullName: 'TS. Đặng Thị Phương', email: 'dtp@university.edu.vn' },
+        { id: 'ins7', fullName: 'PGS. Vũ Văn Giang', email: 'vvg@university.edu.vn' },
+        { id: 'ins8', fullName: 'TS. Ngô Thị Hoa', email: 'nth@university.edu.vn' },
+    ];
 
     newClass = {
         name: '',
         schedule: '',
+        semesterId: '',
+        lecturerId: '',
+        daysInWeek: [] as number[],
     };
+
+    selectedSemesterId: string = '';
+    instructorSearchTerm: string = '';
+    selectedInstructor: UserResponse | null = null;
+    filteredInstructors: UserResponse[] = [];
 
     // Mock data cho courses
     private mockCourses: CourseData[] = [
@@ -44,27 +111,33 @@ export class AdminClassPage implements OnInit {
     ];
 
     // Mock data cho classes
-    private mockClasses: ClassData[] = [
+    private mockClasses: ClassResponse[] = [
         {
             id: '1',
             name: 'Frontend-K1',
+            room: 'Phòng 101',
             schedule: 'Sáng (7:30-11:30)',
-            courseId: '1',
-            studentCount: 25,
+            lecturerId: 'ins1',
+            lecturerName: 'TS. Nguyễn Văn An',
+            lecturerEmail: 'nguyen@gmail.com',
         },
         {
             id: '2',
             name: 'Frontend-K2',
+            room: 'Phòng 102',
             schedule: 'Chiều (13:30-17:30)',
-            courseId: '1',
-            studentCount: 30,
+            lecturerId: 'ins2',
+            lecturerName: 'PGS. Trần Thị Bình',
+            lecturerEmail: 'binh@gmail.com',
         },
         {
             id: '3',
             name: 'Mobile-K1',
+            room: 'Phòng 201',
             schedule: 'Tối (18:30-21:30)',
-            courseId: '2',
-            studentCount: 20,
+            lecturerId: 'ins3',
+            lecturerName: 'GS. Lê Văn Cường',
+            lecturerEmail: 'cuong@gmail.com',
         },
     ];
 
@@ -101,7 +174,7 @@ export class AdminClassPage implements OnInit {
 
     private loadClasses(): void {
         // Simulate API call để lấy danh sách classes theo courseId
-        this.classes = this.mockClasses.filter((cls) => cls.courseId === this.courseId);
+        this.classes = this.mockClasses;
     }
 
     viewStudents(classId: string): void {
@@ -111,7 +184,7 @@ export class AdminClassPage implements OnInit {
         });
     }
 
-    confirmDelete(classData: ClassData): void {
+    confirmDelete(classData: ClassResponse): void {
         this.classToDelete = classData;
         // Sử dụng Bootstrap modal
         const modal = new (window as any).bootstrap.Modal(document.getElementById('deleteModal'));
@@ -156,12 +229,14 @@ export class AdminClassPage implements OnInit {
         }
 
         // Simulate API call để tạo class mới
-        const newClassData: ClassData = {
+        const newClassData: ClassResponse = {
             id: (this.classes.length + 1).toString(),
             name: this.newClass.name,
             schedule: this.newClass.schedule,
-            courseId: this.courseId,
-            studentCount: 0, // Sẽ được cập nhật sau khi import file
+            room: 'Phòng ' + (this.classes.length + 1), // Tự động gán phòng
+            lecturerId: this.selectedInstructor ? this.selectedInstructor.id : '',
+            lecturerName: this.selectedInstructor ? this.selectedInstructor.fullName : '',
+            lecturerEmail: this.selectedInstructor ? this.selectedInstructor.email : '',
         };
 
         this.classes.push(newClassData);
@@ -171,7 +246,7 @@ export class AdminClassPage implements OnInit {
         modal.hide();
 
         // Reset form
-        this.newClass = { name: '', schedule: '' };
+        this.newClass = { name: '', schedule: '', semesterId: '', lecturerId: '', daysInWeek: [] };
         this.selectedFile = null;
 
         // Reset file input
@@ -182,5 +257,30 @@ export class AdminClassPage implements OnInit {
 
         // Có thể thêm toast notification ở đây
         console.log('Đã tạo lớp mới thành công', { newClass: newClassData, file: this.selectedFile });
+    }
+
+    // Instructor search functions
+    onInstructorSearch() {
+        if (this.instructorSearchTerm.trim()) {
+            this.filteredInstructors = this.instructors.filter(
+                (instructor) =>
+                    instructor.fullName.toLowerCase().includes(this.instructorSearchTerm.toLowerCase()) ||
+                    instructor.email.toLowerCase().includes(this.instructorSearchTerm.toLowerCase()),
+            );
+        } else {
+            this.filteredInstructors = [];
+        }
+    }
+
+    selectInstructor(instructor: UserResponse) {
+        this.selectedInstructor = instructor;
+        // this.currentCourseForm. = instructor.id;
+        this.instructorSearchTerm = '';
+        this.filteredInstructors = [];
+    }
+
+    clearSelectedInstructor() {
+        this.selectedInstructor = null;
+        // this.currentCourseForm.teacherId = '';
     }
 }

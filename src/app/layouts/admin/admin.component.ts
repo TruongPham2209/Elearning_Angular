@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { ManageFooterComponent } from '../../shared/components/footers/manage/manage.component';
-import { ManageHeaderComponent } from '../../shared/components/headers/manage/manage.component';
-import { ManageSidebarComponent } from '../../shared/components/sidebars/manage/manage.component';
 import { RouterOutlet } from '@angular/router';
 import { ManagerRole } from '../../core/models/enum/role.model';
+import { FooterComponent } from '../../shared/components/footer/footer.component';
+import { ManageHeaderComponent } from '../../shared/components/headers/manage/manage.component';
+import { AdminSidebarComponent } from './../../shared/components/admin-sidebar/admin-sidebar.component';
 
 @Component({
     selector: 'admin-layout',
-    imports: [CommonModule, ManageFooterComponent, ManageHeaderComponent, ManageSidebarComponent, RouterOutlet],
+    imports: [CommonModule, FooterComponent, ManageHeaderComponent, AdminSidebarComponent, RouterOutlet],
     templateUrl: './admin.component.html',
     styleUrl: './admin.component.scss',
 })

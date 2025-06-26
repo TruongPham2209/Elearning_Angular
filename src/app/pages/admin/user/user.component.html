@@ -1,1 +1,250 @@
-<p>user works!</p>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="h3 mb-0">Quản lý người dùng</h2>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Search Input -->
+                <div class="col-md-6">
+                    <label for="searchInput" class="form-label">Tìm kiếm theo tên hoặc email</label>
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="form-control"
+                            placeholder="Nhập tên hoặc email..."
+                            [(ngModel)]="searchTerm"
+                            (keyup.enter)="onSearch()"
+                        />
+                        <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Role Filter -->
+                <div class="col-md-4">
+                    <label for="roleFilter" class="form-label">Lọc theo vai trò</label>
+                    <select id="roleFilter" class="form-select" [(ngModel)]="selectedRole" (change)="onRoleChange()">
+                        <option *ngFor="let option of roleOptions" [value]="option.value">
+                            {{ option.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Import Button -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-success w-100" (click)="openImportModal()">
+                        <i class="fas fa-file-import me-2"></i>Import Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results Info -->
+    <div class="alert alert-info" *ngIf="searchQuery">
+        <i class="fas fa-info-circle me-2"></i>
+        Hiển thị kết quả tìm kiếm cho: <strong>{{ searchQuery }}</strong>
+        <button
+            type="button"
+            class="btn-close float-end"
+            (click)="searchTerm = ''; selectedRole = 'ALL'; onSearch()"
+        ></button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Danh sách người dùng</h5>
+            <span class="badge bg-secondary">{{ users.length }} người dùng</span>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- Loading Spinner -->
+            <div *ngIf="isLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+            </div>
+
+            <!-- Users Table -->
+            <div *ngIf="!isLoading" class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Tên đăng nhập</th>
+                            <th scope="col">Họ và tên</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Vai trò</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let user of users; let i = index">
+                            <td>{{ currentPage * pageSize + i + 1 }}</td>
+                            <td>
+                                <strong>{{ user.username }}</strong>
+                            </td>
+                            <td>{{ user.fullname }}</td>
+                            <td>
+                                <a [href]="'mailto:' + user.email" class="text-decoration-none">
+                                    {{ user.email }}
+                                </a>
+                            </td>
+                            <td>
+                                <span [class]="getRoleBadgeClass(user.role)">
+                                    {{ getRoleDisplayName(user.role) }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div *ngIf="users.length === 0" class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Không tìm thấy người dùng nào</h5>
+                    <p class="text-muted">Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="card-footer" *ngIf="!isLoading && totalPages > 1">
+            <nav aria-label="User pagination">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <!-- Previous Button -->
+                    <li class="page-item" [class.disabled]="currentPage === 0">
+                        <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </li>
+
+                    <!-- Page Numbers -->
+                    <li
+                        class="page-item"
+                        *ngFor="let page of getPaginationPages()"
+                        [class.active]="page === currentPage"
+                    >
+                        <button class="page-link" (click)="goToPage(page)">
+                            {{ page + 1 }}
+                        </button>
+                    </li>
+
+                    <!-- Next Button -->
+                    <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                        <button
+                            class="page-link"
+                            (click)="goToPage(currentPage + 1)"
+                            [disabled]="currentPage === totalPages - 1"
+                        >
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Pagination Info -->
+            <div class="text-center mt-2">
+                <small class="text-muted"> Trang {{ currentPage + 1 }} / {{ totalPages }} </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div
+    class="modal fade"
+    [class.show]="showImportModal"
+    [style.display]="showImportModal ? 'block' : 'none'"
+    id="importModal"
+    tabindex="-1"
+    aria-labelledby="importModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-file-import me-2"></i>Import người dùng từ Excel
+                </h5>
+                <button type="button" class="btn-close" (click)="closeImportModal()"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- File Upload -->
+                <div class="mb-3">
+                    <label for="fileInput" class="form-label">Chọn file Excel</label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="fileInput"
+                        accept=".xlsx,.xls"
+                        (change)="onFileSelect($event)"
+                    />
+                    <div class="form-text">Chỉ chấp nhận file Excel (.xlsx, .xls). Tối đa 10MB.</div>
+                </div>
+
+                <!-- Selected File Info -->
+                <div class="alert alert-info" *ngIf="selectedFile">
+                    <i class="fas fa-file-excel me-2"></i>
+                    <strong>File đã chọn:</strong> {{ selectedFile.name }}
+                    <br />
+                    <small>Kích thước: {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+                </div>
+
+                <!-- Format Requirements -->
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Yêu cầu định dạng:</h6>
+                    <ul class="mb-0">
+                        <li>File phải có header với các cột: <code>username, fullname, email, role</code></li>
+                        <li>
+                            Cột <code>role</code> chỉ chấp nhận giá trị: <code>STUDENT</code> hoặc <code>LECTURER</code>
+                        </li>
+                        <li>Email phải đúng định dạng</li>
+                        <li>Username không được trùng lặp</li>
+                    </ul>
+                </div>
+
+                <!-- Download Template -->
+                <div class="text-center mb-3">
+                    <button type="button" class="btn btn-outline-primary" (click)="downloadTemplate()">
+                        <i class="fas fa-download me-2"></i>Tải file mẫu
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeImportModal()" [disabled]="isImporting">
+                    Hủy
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    (click)="importUsers()"
+                    [disabled]="!selectedFile || isImporting"
+                >
+                    <span *ngIf="isImporting" class="spinner-border spinner-border-sm me-2"></span>
+                    <i *ngIf="!isImporting" class="fas fa-upload me-2"></i>
+                    {{ isImporting ? 'Đang import...' : 'Import' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div
+    class="modal-backdrop fade"
+    [class.show]="showImportModal"
+    *ngIf="showImportModal"
+    (click)="closeImportModal()"
+></div>

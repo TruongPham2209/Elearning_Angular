@@ -1,0 +1,35 @@
+@import '../../shared/styles/colors.scss';
+@import '../../shared/styles/sizes.scss';
+
+manage-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: $header-height-global;
+    background-color: $header-bgcolor-global;
+    color: white;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+app-footer {
+    margin-top: auto;
+    background-color: $footer-bgcolor-global;
+    padding: 10px;
+    text-align: center;
+}
+
+.layout {
+    overflow-x: hidden; // Prevent horizontal scrollbar
+}
+
+.layout-content {
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.content {
+    padding: 20px;
+    transition: margin-left 0.3s ease-in-out;
+    margin-top: $header-height-global; // Adjust for header height
+}
