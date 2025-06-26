@@ -1,1 +1,137 @@
-<p>submission works!</p>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">Bài nộp của sinh viên cho {{ assignmentTitle }}</h2>
+        </div>
+    </div>
+
+    <!-- Download All Button -->
+    <div class="row mb-3">
+        <div class="col-12 justify-content-end d-flex">
+            <button type="button" class="btn btn-primary btn-download-all" (click)="downloadAllSubmissions()">
+                <i class="fas fa-download me-2"></i>
+                Tải xuống tất cả bài nộp
+            </button>
+        </div>
+    </div>
+
+    <!-- Submissions Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="table-container">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col" class="text-center">Mã sinh viên</th>
+                            <th scope="col" class="text-center">Tình trạng nộp bài</th>
+                            <th scope="col" class="text-center">Tên file</th>
+                            <th scope="col" class="text-center">Thời gian nộp</th>
+                            <th scope="col" class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let submission of studentSubmissions">
+                            <td class="text-center fw-bold">{{ submission.studentId }}</td>
+                            <td class="text-center">
+                                <span class="badge" [ngClass]="getStatusBadgeClass(submission.isSubmitted)">
+                                    {{ getStatusText(submission.isSubmitted) }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span *ngIf="submission.fileName; else noFile" class="file-name">
+                                    {{ submission.fileName }}
+                                </span>
+                                <ng-template #noFile>
+                                    <span class="text-muted">---</span>
+                                </ng-template>
+                            </td>
+                            <td class="text-center">
+                                <span *ngIf="submission.submissionTime; else noTime">
+                                    {{ formatDateTime(submission.submissionTime) }}
+                                </span>
+                                <ng-template #noTime>
+                                    <span class="text-muted">---</span>
+                                </ng-template>
+                            </td>
+                            <td class="text-center">
+                                <div class="action-buttons">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-info me-2"
+                                        (click)="viewSubmissionHistory(submission)"
+                                    >
+                                        <i class="fas fa-history me-1"></i>
+                                        Lịch sử
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-success"
+                                        [disabled]="!submission.fileId"
+                                        (click)="downloadFile(submission)"
+                                    >
+                                        <i class="fas fa-download me-1"></i>
+                                        Tải file
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div
+    class="modal fade show"
+    [style.display]="showHistoryModal ? 'block' : 'none'"
+    [class.show]="showHistoryModal"
+    tabindex="-1"
+    role="dialog"
+>
+    <div class="modal-backdrop fade show" *ngIf="showHistoryModal"></div>
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-history me-2"></i>
+                    Lịch sử nộp bài - {{ selectedStudent?.studentId }}
+                </h5>
+                <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="selectedStudent?.submissionHistory?.length === 0" class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>Sinh viên này chưa có lịch sử nộp bài</p>
+                </div>
+                <div *ngIf="selectedStudent?.submissionHistory?.length! > 0" class="history-container">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="text-center">Hành động</th>
+                                <th scope="col" class="text-center">Tên file</th>
+                                <th scope="col" class="text-center">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let history of selectedStudent?.submissionHistory">
+                                <td class="text-center">
+                                    <span class="badge" [ngClass]="getActionBadgeClass(history.action)">
+                                        {{ getActionText(history.action) }}
+                                    </span>
+                                </td>
+                                <td class="text-center">{{ history.fileName }}</td>
+                                <td class="text-center">{{ formatDateTime(history.timestamp) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>

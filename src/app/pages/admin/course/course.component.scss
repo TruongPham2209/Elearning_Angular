@@ -1,0 +1,269 @@
+// Course Management Component Styles
+// ==================================
+
+// Variables
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --success-color: #059669;
+    --danger-color: #dc2626;
+    --warning-color: #d97706;
+    --info-color: #0284c7;
+    --light-bg: #f8fafc;
+    --border-color: #e2e8f0;
+    --text-muted: #64748b;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --transition: all 0.2s ease-in-out;
+}
+
+// Main container
+.container-fluid {
+    background-color: var(--light-bg);
+    min-height: 100vh;
+}
+
+// Card improvements
+.card {
+    border: none;
+    box-shadow: var(--shadow-md);
+    border-radius: 12px;
+    transition: var(--transition);
+
+    &:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+}
+
+// Table improvements
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+
+    &.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+}
+
+.table {
+    margin-bottom: 0;
+
+    thead th {
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem 0.75rem;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    }
+
+    tbody tr {
+        transition: var(--transition);
+
+        &:hover {
+            background-color: #f1f5f9;
+            transform: scale(1.001);
+        }
+
+        td {
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+    }
+
+    .btn-group {
+        .btn {
+            margin: 0 2px;
+            padding: 0.375rem 0.5rem;
+
+            &:first-child {
+                margin-left: 0;
+            }
+
+            &:last-child {
+                margin-right: 0;
+            }
+        }
+    }
+}
+
+// Loading states
+.loading-overlay {
+    td {
+        background-color: rgba(255, 255, 255, 0.9);
+
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
+        }
+    }
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+// Modal improvements
+.modal {
+    &.show {
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    .modal-dialog {
+        transition: var(--transition);
+
+        &.modal-dialog-centered {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+
+        .modal-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+
+            .modal-title {
+                font-weight: 600;
+                color: #1e293b;
+            }
+
+            .btn-close {
+                transition: var(--transition);
+
+                &:hover {
+                    transform: rotate(90deg);
+                }
+            }
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            background-color: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+
+            .btn + .btn {
+                margin-left: 0.5rem;
+            }
+        }
+    }
+}
+
+// Form improvements
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+
+    &:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+    }
+}
+
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+// Alert improvements
+.alert {
+    border: none;
+    border-radius: 8px;
+
+    &.alert-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+        border-left: 4px solid var(--warning-color);
+    }
+}
+
+// Animations
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+// Responsive improvements
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn-group {
+        .btn {
+            padding: 0.25rem 0.375rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    .modal-dialog {
+        margin: 1rem;
+
+        &.modal-lg {
+            max-width: none;
+        }
+    }
+}
+
+// Utility classes
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+// Focus states for accessibility
+.btn:focus,
+.form-control:focus,
+.page-link:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+// Loading state for table
+.table-responsive.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+}

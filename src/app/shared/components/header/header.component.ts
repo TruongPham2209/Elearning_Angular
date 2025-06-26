@@ -1,22 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { adminNavigationItems, NavigationItem } from '../../../../core/models/types/navigator.interface';
-import { ManagerRole } from './../../../../core/models/enum/role.model';
+import { adminNavigationItems, NavigationItem } from '../../../core/models/types/navigator.interface';
+import { ManagerRole } from '../../../core/models/enum/role.model';
 import { Component, Input, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 declare var bootstrap: any;
 
 @Component({
-    selector: 'manage-header',
+    selector: 'app-header',
     imports: [CommonModule, RouterModule],
-    templateUrl: './manage.component.html',
-    styleUrl: './manage.component.scss',
+    templateUrl: './header.component.html',
+    styleUrl: './header.component.scss',
 })
-export class ManageHeaderComponent implements OnInit, AfterViewInit {
+export class HeaderComponent implements OnInit, AfterViewInit {
     @Input() managerRole!: ManagerRole;
     @ViewChild('userDropdown', { static: true }) userDropdownElement!: ElementRef;
 
     navigationItems!: NavigationItem[];
+    routeToHome: string = '/home';
 
     private dropdownInstance: any;
 
@@ -26,13 +27,19 @@ export class ManageHeaderComponent implements OnInit, AfterViewInit {
 
     ngOnInit(): void {
         if (this.managerRole === ManagerRole.ADMIN) {
+            this.routeToHome = '/admin/dashboard';
             this.navigationItems = adminNavigationItems;
+            return;
+        }
+
+        if (this.managerRole === ManagerRole.LECTURER) {
+            this.routeToHome = '/lecturer/home';
             return;
         }
     }
 
     toggleDropdown(event: MouseEvent) {
-        event.preventDefault(); // Ngăn reload
-        this.dropdownInstance.toggle(); // Toggle dropdown theo cách của Bootstrap
+        event.preventDefault();
+        this.dropdownInstance.toggle();
     }
 }

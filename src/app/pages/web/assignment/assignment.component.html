@@ -1,1 +1,240 @@
-<p>assignment works!</p>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <!-- Assignment Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-file-text-fill me-2"></i>
+                        {{ assignment.title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Assignment Content -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Nội dung bài tập:</h6>
+                        <div class="assignment-content" [innerHTML]="assignment.content"></div>
+                    </div>
+
+                    <!-- Deadline Info -->
+                    <div
+                        class="deadline-info p-3 rounded border-start border-4"
+                        [class.border-success]="getDeadlineStatus().class === 'text-success'"
+                        [class.border-warning]="getDeadlineStatus().class === 'text-warning'"
+                        [class.border-danger]="getDeadlineStatus().class === 'text-danger'"
+                        [class.bg-light]="getDeadlineStatus().class === 'text-success'"
+                        [class.bg-warning-light]="getDeadlineStatus().class === 'text-warning'"
+                        [class.bg-danger-light]="getDeadlineStatus().class === 'text-danger'"
+                    >
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock-fill me-2" [class]="getDeadlineStatus().class"></i>
+                            <div>
+                                <strong>Hạn nộp bài:</strong>
+                                <span class="ms-2">{{ formatDateTime(assignment.deadline) }}</span>
+                                <span
+                                    class="badge ms-2"
+                                    [class.bg-success]="getDeadlineStatus().class === 'text-success'"
+                                    [class.bg-warning]="getDeadlineStatus().class === 'text-warning'"
+                                    [class.bg-danger]="getDeadlineStatus().class === 'text-danger'"
+                                >
+                                    {{ getDeadlineStatus().text }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submission Section -->
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-upload me-2"></i>
+                        Nộp bài
+                    </h5>
+                    <span class="badge" [class.bg-success]="isSubmitted" [class.bg-secondary]="!isSubmitted">
+                        {{ isSubmitted ? 'Đã nộp' : 'Chưa nộp' }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Case 1: Not submitted yet -->
+                    <div *ngIf="!isSubmitted" class="submission-upload">
+                        <div
+                            class="upload-area border-2 border-dashed rounded-4 p-5 text-center position-relative"
+                            [class.border-primary]="isDragOver"
+                            [class.bg-primary-light]="isDragOver"
+                            [class.border-secondary]="!isDragOver"
+                            (dragover)="onDragOver($event)"
+                            (dragleave)="onDragLeave($event)"
+                            (drop)="onDrop($event)"
+                            [class.disabled]="isDeadlinePassed()"
+                        >
+                            <!-- Drag & Drop UI -->
+                            <div *ngIf="!selectedFile" class="upload-placeholder">
+                                <i class="bi bi-cloud-upload-fill display-4 text-muted mb-3"></i>
+                                <h5 class="text-muted mb-3">Kéo thả file vào đây hoặc</h5>
+                                <button
+                                    class="btn btn-outline-primary btn-lg"
+                                    type="button"
+                                    [disabled]="isDeadlinePassed()"
+                                    onclick="document.getElementById('fileInput').click()"
+                                >
+                                    <i class="bi bi-folder-plus me-2"></i>
+                                    Chọn file từ máy tính
+                                </button>
+                                <input
+                                    type="file"
+                                    id="fileInput"
+                                    class="d-none"
+                                    (change)="onFileSelected($event)"
+                                    [disabled]="isDeadlinePassed()"
+                                />
+                                <p class="text-muted mt-3 mb-0">
+                                    <small>Hỗ trợ tất cả các định dạng file. Dung lượng tối đa: 50MB</small>
+                                </p>
+                            </div>
+
+                            <!-- Selected File Preview -->
+                            <div *ngIf="selectedFile" class="selected-file-preview">
+                                <div class="alert alert-info d-flex align-items-center mb-4">
+                                    <i class="bi bi-file-earmark-check-fill me-3 fs-4"></i>
+                                    <div class="flex-grow-1 text-start">
+                                        <h6 class="alert-heading mb-1">File đã chọn:</h6>
+                                        <p class="mb-0">
+                                            <strong>{{ selectedFile.name }}</strong>
+                                            <span class="text-muted ms-2">
+                                                ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary"
+                                        type="button"
+                                        (click)="selectedFile = null"
+                                    >
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button
+                                        class="btn btn-success btn-lg px-4"
+                                        type="button"
+                                        (click)="submitAssignment()"
+                                        [disabled]="isDeadlinePassed()"
+                                    >
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        Nộp bài
+                                    </button>
+                                    <button
+                                        class="btn btn-outline-secondary btn-lg px-4"
+                                        type="button"
+                                        (click)="selectedFile = null"
+                                    >
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Chọn lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Deadline passed overlay -->
+                            <div
+                                *ngIf="isDeadlinePassed()"
+                                class="deadline-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75 rounded-4"
+                            >
+                                <div class="text-center">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-2"></i>
+                                    <h5 class="text-danger">Đã hết hạn nộp bài</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case 2: Already submitted -->
+                    <div *ngIf="isSubmitted && submission" class="submission-details">
+                        <div class="alert alert-success d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3 fs-4 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="alert-heading mb-3">Bài tập đã được nộp thành công!</h6>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="submission-info">
+                                            <label class="form-label text-muted fw-bold">Tên file:</label>
+                                            <p class="mb-0">{{ submission.fileName }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="submission-info">
+                                            <label class="form-label text-muted fw-bold">Thời gian nộp:</label>
+                                            <p class="mb-0">{{ formatDateTime(submission.performAt) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-primary" type="button" (click)="downloadSubmission()">
+                                        <i class="bi bi-download me-2"></i>
+                                        Tải xuống
+                                    </button>
+                                    <button
+                                        class="btn btn-outline-danger"
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmRemoveModal"
+                                    >
+                                        <i class="bi bi-trash me-2"></i>
+                                        Gỡ bài
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal for Remove Submission -->
+<div
+    class="modal fade"
+    id="confirmRemoveModal"
+    tabindex="-1"
+    aria-labelledby="confirmRemoveModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmRemoveModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Xác nhận gỡ bài
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bạn có chắc chắn muốn gỡ bài tập đã nộp không?</p>
+                <div class="alert alert-warning d-flex align-items-start">
+                    <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                    <div>
+                        <small>
+                            <strong>Lưu ý:</strong> Sau khi gỡ bài, bạn sẽ cần nộp lại bài tập. Hãy đảm bảo rằng bạn vẫn
+                            còn thời gian để nộp bài mới.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Hủy bỏ
+                </button>
+                <button type="button" class="btn btn-danger" (click)="removeSubmission()">
+                    <i class="bi bi-trash me-2"></i>
+                    Xác nhận gỡ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

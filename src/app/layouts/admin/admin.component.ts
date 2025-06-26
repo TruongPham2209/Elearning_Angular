@@ -3,12 +3,12 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ManagerRole } from '../../core/models/enum/role.model';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
-import { ManageHeaderComponent } from '../../shared/components/headers/manage/manage.component';
+import { HeaderComponent } from '../../shared/components/header/header.component';
 import { AdminSidebarComponent } from './../../shared/components/admin-sidebar/admin-sidebar.component';
 
 @Component({
     selector: 'admin-layout',
-    imports: [CommonModule, FooterComponent, ManageHeaderComponent, AdminSidebarComponent, RouterOutlet],
+    imports: [CommonModule, FooterComponent, HeaderComponent, AdminSidebarComponent, RouterOutlet],
     templateUrl: './admin.component.html',
     styleUrl: './admin.component.scss',
 })

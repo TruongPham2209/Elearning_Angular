@@ -2,4 +2,5 @@
 export enum ManagerRole {
     ADMIN = 'ADMIN',
     LECTURER = 'LECTURER',
+    STUDENT = 'STUDENT',
 }

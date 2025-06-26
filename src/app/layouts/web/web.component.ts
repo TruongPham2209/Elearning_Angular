@@ -1,14 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-// import { HeaderComponent } from '../../components/web/header/header.component';
-// import { FooterComponent } from '../../components/web/footer/footer.component';
+import { ManagerRole } from '../../core/models/enum/role.model';
+import { FooterComponent } from '../../shared/components/footer/footer.component';
+import { HeaderComponent } from '../../shared/components/header/header.component';
 
 @Component({
-  selector: 'web-layout',
-  imports: [RouterOutlet],
-  templateUrl: './web.component.html',
-  styleUrl: './web.component.scss'
+    selector: 'web-layout',
+    imports: [CommonModule, FooterComponent, HeaderComponent, RouterOutlet],
+    templateUrl: './web.component.html',
+    styleUrl: './web.component.scss',
 })
 export class WebLayout {
-
+    manageRole = ManagerRole.STUDENT;
 }

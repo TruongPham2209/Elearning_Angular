@@ -1,1 +1,327 @@
-<p>home works!</p>
+<div class="container-fluid py-4">
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="d-flex justify-content-center align-items-center" style="min-height: 400px">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!loading">
+        <!-- Semesters Section -->
+        <section class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <!-- Dùng bootstrap icon -->
+                                <i class="bi bi-calendar me-2"></i>
+                                Học kỳ và Lớp học
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div *ngIf="semesters.length === 0" class="text-center text-muted py-4">
+                                <p>Chưa có học kỳ nào được đăng ký</p>
+                            </div>
+
+                            <div *ngFor="let semester of semesters" class="mb-3">
+                                <div class="accordion" [id]="'accordion-' + semester.id">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" [id]="'heading-' + semester.id">
+                                            <button
+                                                class="accordion-button collapsed fw-bold"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                [attr.data-bs-target]="'#collapse-' + semester.id"
+                                                [attr.aria-expanded]="false"
+                                                [attr.aria-controls]="'collapse-' + semester.id"
+                                            >
+                                                <i class="vi bi-calendar-date me-2"></i>
+                                                {{ semester.title }}
+                                            </button>
+                                        </h2>
+                                        <div
+                                            [id]="'collapse-' + semester.id"
+                                            class="accordion-collapse collapse"
+                                            [attr.aria-labelledby]="'heading-' + semester.id"
+                                            [attr.data-bs-parent]="'#accordion-' + semester.id"
+                                        >
+                                            <div class="accordion-body">
+                                                <div
+                                                    *ngIf="semester.classes.length === 0"
+                                                    class="text-muted text-center py-3"
+                                                >
+                                                    <i class="bi bi-info-circle me-2"></i>
+                                                    Chưa có lớp học nào trong học kỳ này
+                                                </div>
+
+                                                <div class="row" *ngIf="semester.classes.length > 0">
+                                                    <div
+                                                        *ngFor="let class of semester.classes"
+                                                        class="col-md-6 col-lg-4 mb-3"
+                                                    >
+                                                        <div
+                                                            class="card h-100 class-card"
+                                                            (click)="navigateToClass(class.id)"
+                                                            role="button"
+                                                            tabindex="0"
+                                                            (keydown.enter)="navigateToClass(class.id)"
+                                                        >
+                                                            <div class="card-body">
+                                                                <h6 class="card-title text-primary fw-bold">
+                                                                    <i class="bi bi-easel me-2"></i>
+                                                                    <!-- Thay thế cho chalkboard-teacher -->
+                                                                    {{ class.name }}
+                                                                </h6>
+                                                                <div class="mb-2">
+                                                                    <small class="text-muted">
+                                                                        <i class="bi bi-door-open me-1"></i>
+                                                                        Phòng: {{ class.room }}
+                                                                    </small>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <small class="text-muted">
+                                                                        <i class="bi bi-clock me-1"></i>
+                                                                        {{ class.schedule }}
+                                                                    </small>
+                                                                </div>
+                                                                <div class="border-top pt-2">
+                                                                    <small class="text-success">
+                                                                        <i class="bi bi-person me-1"></i>
+                                                                        {{ class.lecturerName }}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="card-footer bg-transparent">
+                                                                <small class="text-primary">
+                                                                    <i class="bi bi-arrow-right me-1"></i>
+                                                                    Nhấn để vào lớp học
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notifications Section -->
+        <section>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h4 class="mb-0">
+                                <i class="bi bi-bell me-2"></i>
+                                Thông báo
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <!-- Notification Tabs -->
+                            <ul class="nav nav-tabs mb-3" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button
+                                        class="nav-link"
+                                        [class.active]="activeNotificationTab === NotificationType.SYSTEM"
+                                        type="button"
+                                        (click)="switchNotificationTab(NotificationType.SYSTEM)"
+                                    >
+                                        <i class="bi bi-gear me-2"></i>
+                                        Hệ thống
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button
+                                        class="nav-link"
+                                        [class.active]="activeNotificationTab === NotificationType.STUDENT_ONLY"
+                                        type="button"
+                                        (click)="switchNotificationTab(NotificationType.STUDENT_ONLY)"
+                                    >
+                                        <i class="bi bi-person me-2"></i>
+                                        Học tập
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content">
+                                <!-- Loading State -->
+                                <div *ngIf="isCurrentTabLoading()" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải thông báo...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications List -->
+                                <div *ngIf="!isCurrentTabLoading()">
+                                    <div
+                                        *ngIf="getCurrentNotifications().content.length === 0"
+                                        class="text-center text-muted py-4"
+                                    >
+                                        <i class="bi bi-inbox fs-2 mb-3"></i>
+                                        <p>Không có thông báo nào</p>
+                                    </div>
+
+                                    <div *ngIf="getCurrentNotifications().content.length > 0">
+                                        <div
+                                            *ngFor="let notification of getCurrentNotifications().content"
+                                            class="notification-item border rounded p-3 mb-3"
+                                            (click)="openNotificationDetail(notification)"
+                                            role="button"
+                                            tabindex="0"
+                                            (keydown.enter)="openNotificationDetail(notification)"
+                                        >
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 text-primary">{{ notification.title }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-person me-1"></i>
+                                                        {{ notification.createdBy }} •
+                                                        <i class="bi bi-calendar me-1"></i>
+                                                        {{ formatDate(notification.createdAt) }}
+                                                    </small>
+                                                </div>
+                                                <i class="bi bi-chevron-right text-muted"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pagination -->
+                                        <nav
+                                            aria-label="Phân trang thông báo"
+                                            *ngIf="getCurrentNotifications().totalPages > 1"
+                                        >
+                                            <ul class="pagination justify-content-center">
+                                                <!-- Previous Button -->
+                                                <li
+                                                    class="page-item"
+                                                    [class.disabled]="getCurrentNotifications().currentPage === 0"
+                                                >
+                                                    <button
+                                                        class="page-link"
+                                                        (click)="
+                                                            loadNotificationPage(
+                                                                getCurrentNotifications().currentPage - 1
+                                                            )
+                                                        "
+                                                        [disabled]="getCurrentNotifications().currentPage === 0"
+                                                    >
+                                                        <i class="bi bi-chevron-left"></i>
+                                                    </button>
+                                                </li>
+
+                                                <!-- Page Numbers -->
+                                                <li
+                                                    *ngFor="
+                                                        let page of generatePageNumbers(
+                                                            getCurrentNotifications().totalPages,
+                                                            getCurrentNotifications().currentPage
+                                                        )
+                                                    "
+                                                    class="page-item"
+                                                    [class.active]="page === getCurrentNotifications().currentPage"
+                                                >
+                                                    <button class="page-link" (click)="loadNotificationPage(page)">
+                                                        {{ page + 1 }}
+                                                    </button>
+                                                </li>
+
+                                                <!-- Next Button -->
+                                                <li
+                                                    class="page-item"
+                                                    [class.disabled]="
+                                                        getCurrentNotifications().currentPage >=
+                                                        getCurrentNotifications().totalPages - 1
+                                                    "
+                                                >
+                                                    <button
+                                                        class="page-link"
+                                                        (click)="
+                                                            loadNotificationPage(
+                                                                getCurrentNotifications().currentPage + 1
+                                                            )
+                                                        "
+                                                        [disabled]="
+                                                            getCurrentNotifications().currentPage >=
+                                                            getCurrentNotifications().totalPages - 1
+                                                        "
+                                                    >
+                                                        <i class="bi bi-chevron-right"></i>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Notification Detail Modal -->
+<div
+    class="modal fade"
+    [class.show]="selectedNotification"
+    [style.display]="selectedNotification ? 'block' : 'none'"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="notificationModalLabel"
+    [attr.aria-hidden]="!selectedNotification"
+>
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">
+                    <i class="bi bi-bell me-2"></i>
+                    Chi tiết thông báo
+                </h5>
+                <button type="button" class="btn-close" (click)="closeNotificationDetail()" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" *ngIf="selectedNotification">
+                <h6 class="text-primary mb-3">{{ selectedNotification.title }}</h6>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i>
+                        Người tạo: {{ selectedNotification.createdBy }}
+                    </small>
+                    <br />
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        Thời gian: {{ formatDate(selectedNotification.createdAt) }}
+                    </small>
+                </div>
+                <hr />
+                <div class="notification-content">
+                    <!-- Placeholder for notification content -->
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Nội dung chi tiết của thông báo sẽ được hiển thị tại đây.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeNotificationDetail()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div
+    class="modal-backdrop fade"
+    [class.show]="selectedNotification"
+    *ngIf="selectedNotification"
+    (click)="closeNotificationDetail()"
+></div>
