@@ -19,7 +19,7 @@
                 </div>
                 <div class="card-body">
                     <div class="accordion" id="semesterAccordion">
-                        <div class="accordion-item" *ngFor="let semester of semesters">
+                        <div class="accordion-item" *ngFor="let semester of classesBySemester">
                             <h2 class="accordion-header">
                                 <button
                                     class="accordion-button"
@@ -27,17 +27,21 @@
                                     type="button"
                                     (click)="toggleSemester(semester.id)"
                                 >
-                                    {{ formatSemesterDisplay(semester) }}
+                                    {{ semester.title }}
                                 </button>
                             </h2>
                             <div class="accordion-collapse collapse" [class.show]="isSemesterOpen(semester.id)">
                                 <div class="accordion-body">
                                     <div class="list-group list-group-flush">
-                                        <div
-                                            class="list-group-item"
-                                            *ngFor="let classRoom of getClassesForSemester(semester.id)"
-                                        >
-                                            <h6 class="mb-1">{{ classRoom.name }}</h6>
+                                        <div class="list-group-item" *ngFor="let classRoom of semester.classes">
+                                            <a
+                                                [routerLink]="['/lecturer/classes']"
+                                                [queryParams]="{ id: classRoom.id }"
+                                                class="text-decoration-none text-dark d-flex flex-column"
+                                            >
+                                                <h6 class="mb-1 text-primary">{{ classRoom.name }}</h6>
+                                            </a>
+
                                             <p class="mb-1">
                                                 <i class="bi bi-geo-alt me-1"></i>
                                                 Phòng: {{ classRoom.room }}
@@ -49,7 +53,7 @@
                                         </div>
                                         <div
                                             class="list-group-item text-center text-muted"
-                                            *ngIf="getClassesForSemester(semester.id).length === 0"
+                                            *ngIf="semester.classes.length === 0"
                                         >
                                             Không có lớp học nào
                                         </div>
@@ -113,8 +117,7 @@
                                     <h6 class="mb-1">{{ notification.title }}</h6>
                                     <small>{{ notification.createdAt | date: 'dd/MM/yyyy' }}</small>
                                 </div>
-                                <p class="mb-1 text-truncate">{{ notification.detail }}</p>
-                                <small class="text-muted">{{ notification.createBy }}</small>
+                                <small class="text-muted">{{ notification.sender }}</small>
                             </button>
                             <div
                                 class="list-group-item text-center text-muted"
@@ -194,7 +197,7 @@
                 <div class="mb-3">
                     <small class="text-muted">
                         <i class="bi bi-person me-1"></i>
-                        Người tạo: {{ selectedNotification.createBy }}
+                        Người tạo: {{ selectedNotification.sender }}
                     </small>
                     <br />
                     <small class="text-muted">
@@ -202,9 +205,7 @@
                         Ngày tạo: {{ selectedNotification.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                     </small>
                 </div>
-                <div class="notification-detail">
-                    {{ selectedNotification.detail }}
-                </div>
+                <div class="notification-detail" [innerHTML]="selectedNotification.content"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" (click)="closeNotificationModal()">Đóng</button>

@@ -57,6 +57,7 @@
                                             [indeterminate]="isIndeterminate()"
                                             (change)="toggleSelectAll($event)"
                                         />
+                                        <b>#</b>
                                     </div>
                                 </th>
                                 <th scope="col">MSSV</th>
@@ -92,7 +93,11 @@
                                             [id]="'student-' + student.id"
                                             [(ngModel)]="student.isSelected"
                                             (change)="onStudentSelectionChange()"
+                                            [disabled]="student.isBanned"
                                         />
+                                        <i
+                                            ><b>{{ i + 1 }}</b></i
+                                        >
                                     </div>
                                 </td>
                                 <td>
@@ -128,12 +133,11 @@
                         <span class="text-muted"> Đã chọn {{ getSelectedStudents().length }} sinh viên </span>
                         <button
                             type="button"
-                            class="btn btn-danger btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#bulkBanModal"
+                            class="btn btn-danger btn-sm me-5"
+                            (click)="openBulkBanModal(bulkBanModal)"
                         >
                             <i class="bi bi-person-x me-2"></i>
-                            Ban các sinh viên đã chọn
+                            Cấm thi
                         </button>
                     </div>
                 </div>
@@ -145,7 +149,6 @@
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">#</th>
                                 <th scope="col">MSSV</th>
                                 <th scope="col">Họ và tên</th>
                                 <th scope="col">Nguyên nhân</th>
@@ -171,25 +174,24 @@
                         <!-- Data Rows -->
                         <tbody *ngIf="!isLoading">
                             <tr *ngFor="let bannedStudent of bannedStudents; let i = index">
-                                <td>{{ i + 1 }}</td>
                                 <td>
-                                    <strong>{{ bannedStudent.username }}</strong>
+                                    <strong>{{ bannedStudent.code }}</strong>
                                 </td>
                                 <td>{{ bannedStudent.fullname }}</td>
                                 <td>
-                                    <span class="badge bg-warning text-dark">{{ bannedStudent.reason }}</span>
+                                    <span class="badge bg-warning text-dark">{{ bannedStudent.cause }}</span>
                                 </td>
                                 <td>
                                     <span
                                         class="text-truncate d-inline-block"
                                         style="max-width: 200px"
-                                        [title]="bannedStudent.details"
+                                        [title]="bannedStudent.description"
                                     >
-                                        {{ bannedStudent.details }}
+                                        {{ bannedStudent.description }}
                                     </span>
                                 </td>
                                 <td>{{ bannedStudent.bannedBy }}</td>
-                                <td>{{ bannedStudent.bannedDate }}</td>
+                                <td>{{ bannedStudent.bannedDate | date: 'dd/MM/yyyy' }}</td>
                                 <td class="text-center">
                                     <button
                                         type="button"
@@ -217,87 +219,72 @@
 </div>
 
 <!-- Bulk Ban Modal -->
-<div class="modal fade" id="bulkBanModal" tabindex="-1" aria-labelledby="bulkBanModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="bulkBanModalLabel">Xác nhận ban sinh viên</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<ng-template #bulkBanModal let-modal>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="bulkBanModalLabel">Xác nhận cấm thi sinh viên</h5>
+            <button type="button" class="btn-close" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Cảnh báo:</strong> Bạn đang thực hiện ban {{ getSelectedStudents().length }} sinh viên dưới đây:
             </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Cảnh báo:</strong> Bạn đang thực hiện ban {{ getSelectedStudents().length }} sinh viên dưới
-                    đây:
+
+            <div class="table-responsive mb-3">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>MSSV</th>
+                            <th>Họ và tên</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let student of getSelectedStudents()">
+                            <td>
+                                <strong>{{ student.username }}</strong>
+                            </td>
+                            <td>{{ student.fullname }}</td>
+                            <td>{{ student.email }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <form #banForm="ngForm">
+                <div class="mb-3">
+                    <label for="banReason" class="form-label"
+                        >Nguyên nhân cấm thi <span class="text-danger">*</span></label
+                    >
+                    <select class="form-select" id="banReason" [(ngModel)]="banData.cause" name="banReason" required>
+                        <option value="" disabled selected>Chọn nguyên nhân</option>
+                        <option *ngFor="let cause of bannedCauseOptions" [value]="cause.value">
+                            {{ cause.label }}
+                        </option>
+                    </select>
                 </div>
 
-                <div class="table-responsive mb-3">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>MSSV</th>
-                                <th>Họ và tên</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let student of getSelectedStudents()">
-                                <td>
-                                    <strong>{{ student.username }}</strong>
-                                </td>
-                                <td>{{ student.fullname }}</td>
-                                <td>{{ student.email }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mb-3">
+                    <label for="banDetails" class="form-label">Chi tiết <span class="text-danger">*</span></label>
+                    <textarea
+                        class="form-control"
+                        id="banDetails"
+                        rows="3"
+                        [(ngModel)]="banData.description"
+                        name="banDetails"
+                        required
+                        placeholder="Mô tả chi tiết nguyên nhân ban sinh viên..."
+                    ></textarea>
                 </div>
-
-                <form #banForm="ngForm">
-                    <div class="mb-3">
-                        <label for="banReason" class="form-label"
-                            >Nguyên nhân ban <span class="text-danger">*</span></label
-                        >
-                        <select
-                            class="form-select"
-                            id="banReason"
-                            [(ngModel)]="banData.reason"
-                            name="banReason"
-                            required
-                        >
-                            <option value="">Chọn nguyên nhân</option>
-                            <option value="Vi phạm quy định">Vi phạm quy định</option>
-                            <option value="Gian lận thi cử">Gian lận thi cử</option>
-                            <option value="Không tham gia học">Không tham gia học</option>
-                            <option value="Khác">Khác</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="banDetails" class="form-label">Chi tiết <span class="text-danger">*</span></label>
-                        <textarea
-                            class="form-control"
-                            id="banDetails"
-                            rows="3"
-                            [(ngModel)]="banData.details"
-                            name="banDetails"
-                            required
-                            placeholder="Mô tả chi tiết nguyên nhân ban sinh viên..."
-                        ></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button
-                    type="button"
-                    class="btn btn-danger"
-                    [disabled]="!banData.reason || !banData.details"
-                    (click)="confirmBulkBan()"
-                >
-                    <i class="bi bi-person-x me-2"></i>
-                    Xác nhận ban
-                </button>
-            </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Hủy</button>
+            <button type="button" class="btn btn-danger" [disabled]="disableBanButton()" (click)="confirmBulkBan()">
+                <i class="bi bi-person-x me-2"></i>
+                Xác nhận cấm thi
+            </button>
         </div>
     </div>
-</div>
+</ng-template>

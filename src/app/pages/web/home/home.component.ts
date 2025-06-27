@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { NotificationResponse } from '../../../core/models/api/notification.model';
 import { SemesterWithClassesResponse } from '../../../core/models/api/semester.model';
 import { Page } from '../../../core/models/types/page.interface';
-import { NotificationType } from '../../admin/notification/notification.component';
+import { NotificationType } from '../../../core/models/enum/notification.model';
 
 @Component({
     selector: 'web-home-page',
@@ -117,32 +117,32 @@ export class WebHomePage implements OnInit {
             const mockNotifications: Page<NotificationResponse> = {
                 content: isSystem
                     ? [
-                          {
-                              id: 'sys1',
-                              title: 'Thông báo bảo trì hệ thống',
-                              createdAt: new Date('2024-06-25'),
-                              createdBy: 'Quản trị viên',
-                          },
-                          {
-                              id: 'sys2',
-                              title: 'Cập nhật chính sách học tập mới',
-                              createdAt: new Date('2024-06-24'),
-                              createdBy: 'Phòng Đào tạo',
-                          },
+                          //   {
+                          //       id: 'sys1',
+                          //       title: 'Thông báo bảo trì hệ thống',
+                          //       createdAt: new Date('2024-06-25'),
+                          //       createdBy: 'Quản trị viên',
+                          //   },
+                          //   {
+                          //       id: 'sys2',
+                          //       title: 'Cập nhật chính sách học tập mới',
+                          //       createdAt: new Date('2024-06-24'),
+                          //       createdBy: 'Phòng Đào tạo',
+                          //   },
                       ]
                     : [
-                          {
-                              id: 'stu1',
-                              title: 'Thông báo nộp bài tập lớn môn Lập trình Web',
-                              createdAt: new Date('2024-06-25'),
-                              createdBy: 'Nguyễn Văn A',
-                          },
-                          {
-                              id: 'stu2',
-                              title: 'Lịch thi giữa kỳ môn Cơ sở dữ liệu',
-                              createdAt: new Date('2024-06-23'),
-                              createdBy: 'Trần Thị B',
-                          },
+                          //   {
+                          //       id: 'stu1',
+                          //       title: 'Thông báo nộp bài tập lớn môn Lập trình Web',
+                          //       createdAt: new Date('2024-06-25'),
+                          //       createdBy: 'Nguyễn Văn A',
+                          //   },
+                          //   {
+                          //       id: 'stu2',
+                          //       title: 'Lịch thi giữa kỳ môn Cơ sở dữ liệu',
+                          //       createdAt: new Date('2024-06-23'),
+                          //       createdBy: 'Trần Thị B',
+                          //   },
                       ],
                 totalPages: 3,
                 currentPage: page,

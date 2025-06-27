@@ -185,7 +185,7 @@
                                                     <h6 class="mb-1 text-primary">{{ notification.title }}</h6>
                                                     <small class="text-muted">
                                                         <i class="bi bi-person me-1"></i>
-                                                        {{ notification.createdBy }} •
+                                                        {{ notification.sender }} •
                                                         <i class="bi bi-calendar me-1"></i>
                                                         {{ formatDate(notification.createdAt) }}
                                                     </small>
@@ -294,7 +294,7 @@
                 <div class="mb-3">
                     <small class="text-muted">
                         <i class="bi bi-person me-1"></i>
-                        Người tạo: {{ selectedNotification.createdBy }}
+                        Người tạo: {{ selectedNotification.sender }}
                     </small>
                     <br />
                     <small class="text-muted">

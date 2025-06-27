@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SemesterResponse, SemesterForm } from '../../../core/models/api/semester.model';
 import * as DatetimeUtil from '../../../core/utils/datetime.util';
+import { mockSemesters } from '../../../core/utils/mockdata.util';
 
 @Component({
     selector: 'admin-semester-page',
@@ -12,26 +13,7 @@ import * as DatetimeUtil from '../../../core/utils/datetime.util';
     styleUrl: './semester.component.scss',
 })
 export class AdminSemesterPage {
-    semesters: SemesterResponse[] = [
-        {
-            id: '550e8400-e29b-41d4-a716-446655440001',
-            name: 'Học kỳ 1 năm 2024-2025',
-            startDate: new Date('2024-09-01'),
-            endDate: new Date('2025-01-15'),
-        },
-        {
-            id: '550e8400-e29b-41d4-a716-446655440002',
-            name: 'Học kỳ 2 năm 2024-2025',
-            startDate: new Date('2025-02-01'),
-            endDate: new Date('2025-06-30'),
-        },
-        {
-            id: '550e8400-e29b-41d4-a716-446655440003',
-            name: 'Học kỳ hè năm 2025',
-            startDate: new Date('2025-07-01'),
-            endDate: new Date('2025-08-31'),
-        },
-    ];
+    semesters: SemesterResponse[] = mockSemesters;
 
     showModal = false;
     isEditMode = false;
@@ -74,20 +56,16 @@ export class AdminSemesterPage {
         };
     }
 
-    generateUUID(): string {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = (Math.random() * 16) | 0;
-            const v = c == 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
-    }
-
     getTodayString(): string {
         return DatetimeUtil.dateToInputString(new Date());
     }
 
-    validateDates(): string | null {
-        return DatetimeUtil.validateDates(this.currentSemesterForm.startDate, this.currentSemesterForm.endDate);
+    validateDates(isUpdate: boolean = false): string | null {
+        return DatetimeUtil.validateDates(
+            this.currentSemesterForm.startDate,
+            this.currentSemesterForm.endDate,
+            isUpdate,
+        );
     }
 
     saveSemester() {
@@ -102,7 +80,7 @@ export class AdminSemesterPage {
         }
 
         // Date validation
-        const validationError = this.validateDates();
+        const validationError = this.validateDates(this.isEditMode);
         if (validationError) {
             alert(validationError);
             return;
@@ -114,18 +92,7 @@ export class AdminSemesterPage {
             startDate: new Date(this.currentSemesterForm.startDate),
             endDate: new Date(this.currentSemesterForm.endDate),
         };
-
-        if (this.isEditMode) {
-            // Update existing semester
-            const index = this.semesters.findIndex((s) => s.id === semesterData.id);
-            if (index !== -1) {
-                this.semesters[index] = semesterData;
-            }
-        } else {
-            // Add new semester
-            semesterData.id = this.generateUUID();
-            this.semesters.push(semesterData);
-        }
+        console.log('Saving semester:', semesterData);
 
         this.closeModal();
     }

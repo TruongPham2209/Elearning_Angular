@@ -154,33 +154,47 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Add/Edit Modal -->
-    <div
-        class="modal fade show d-block"
-        [class.d-none]="!showModal"
-        tabindex="-1"
-        style="background-color: rgba(0, 0, 0, 0.5)"
-        (click)="closeModal()"
-    >
-        <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        {{ isEditMode ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới' }}
-                    </h5>
-                    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form #courseForm="ngForm">
-                        <!-- Tên khóa học -->
-                        <div class="mb-3">
-                            <label for="courseName" class="form-label">
-                                Tên khóa học <span class="text-danger">*</span>
-                            </label>
+<!-- Add/Edit Modal with Enhanced Styling -->
+<div
+    class="modal fade show d-block"
+    [class.d-none]="!showModal"
+    tabindex="-1"
+    style="background-color: rgba(0, 0, 0, 0.5)"
+    (click)="closeModal()"
+>
+    <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Enhanced Modal Header -->
+            <div class="modal-header bg-primary text-white px-4 py-2">
+                <h5 class="modal-title fs-5 fw-semibold">
+                    <i class="bi bi-book me-2"></i>
+                    {{ isEditMode ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới' }}
+                </h5>
+                <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    (click)="closeModal()"
+                    aria-label="Close"
+                ></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <form #courseForm="ngForm">
+                    <!-- Tên khóa học -->
+                    <div class="mb-4">
+                        <label for="courseName" class="form-label fw-medium">
+                            <i class="bi bi-card-heading me-1 text-primary"></i>
+                            Tên khóa học <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-primary">
+                                <i class="bi bi-pencil text-primary"></i>
+                            </span>
                             <input
                                 type="text"
-                                class="form-control"
+                                class="form-control form-control-lg border-primary border-end-1"
                                 id="courseName"
                                 [(ngModel)]="currentCourseForm.name"
                                 name="courseName"
@@ -188,15 +202,21 @@
                                 placeholder="Nhập tên khóa học"
                             />
                         </div>
+                    </div>
 
-                        <!-- Số buổi học -->
-                        <div class="mb-3">
-                            <label for="sessions" class="form-label">
-                                Số buổi học <span class="text-danger">*</span>
-                            </label>
+                    <!-- Số buổi học -->
+                    <div class="mb-4">
+                        <label for="sessions" class="form-label fw-medium">
+                            <i class="bi bi-calendar-week me-1 text-primary"></i>
+                            Số buổi học <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-primary">
+                                <i class="bi bi-123 text-primary"></i>
+                            </span>
                             <input
                                 type="number"
-                                class="form-control"
+                                class="form-control form-control-lg border-primary border-end-1"
                                 id="sessions"
                                 [(ngModel)]="currentCourseForm.sessions"
                                 name="sessions"
@@ -205,16 +225,24 @@
                                 max="20"
                                 placeholder="Nhập số buổi học (1-20)"
                             />
-                            <div class="form-text">Số buổi học từ 1 đến 20</div>
                         </div>
+                        <div class="form-text text-muted mt-2">
+                            <i class="bi bi-info-circle me-1 text-info"></i>Số buổi học từ 1 đến 20
+                        </div>
+                    </div>
 
-                        <!-- Mô tả ngắn -->
-                        <div class="mb-3">
-                            <label for="courseDescription" class="form-label">
-                                Mô tả khóa học <span class="text-danger">*</span>
-                            </label>
+                    <!-- Mô tả ngắn -->
+                    <div class="mb-4">
+                        <label for="courseDescription" class="form-label fw-medium">
+                            <i class="bi bi-text-paragraph me-1 text-primary"></i>
+                            Mô tả khóa học <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-primary align-items-start">
+                                <i class="bi bi-chat-left-text text-primary mt-1"></i>
+                            </span>
                             <textarea
-                                class="form-control"
+                                class="form-control form-control-lg border-primary border-end-1"
                                 id="courseDescription"
                                 [(ngModel)]="currentCourseForm.shortDescription"
                                 name="courseDescription"
@@ -223,53 +251,62 @@
                                 rows="4"
                             ></textarea>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" (click)="closeModal()">Hủy</button>
-                    <button type="button" class="btn btn-primary" (click)="saveCourse()" [disabled]="isLoading">
-                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                        {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
-                    </button>
-                </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary rounded-2 px-4 py-2" (click)="closeModal()">
+                    Hủy
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-2 px-4 py-2"
+                    (click)="saveCourse()"
+                    [disabled]="disableButton()"
+                >
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i *ngIf="!isLoading" class="bi bi-save me-2 text-white"></i>
+                    {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Delete Confirmation Modal -->
-    <div
-        class="modal fade show d-block"
-        [class.d-none]="!showDeleteModal"
-        tabindex="-1"
-        style="background-color: rgba(0, 0, 0, 0.5)"
-        (click)="closeDeleteModal()"
-    >
-        <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        Xác nhận xóa
-                    </h5>
-                    <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Bạn có chắc chắn muốn xóa khóa học này không?</p>
-                    <div *ngIf="courseToDelete" class="alert alert-warning">
-                        <strong>{{ courseToDelete.name }}</strong>
-                    </div>
-                    <p class="text-muted mb-0">
+<!-- Delete Confirmation Modal -->
+<div
+    class="modal fade show d-block"
+    [class.d-none]="!showDeleteModal"
+    tabindex="-1"
+    style="background-color: rgba(0, 0, 0, 0.5)"
+    (click)="closeDeleteModal()"
+>
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="bi bi-exclamation-triangle me-2 text-danger"></i>
+                <h5 class="modal-title text-danger" id="deleteModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+                    <p class="mb-3">Bạn có chắc chắn muốn xóa lớp</p>
+                    <p class="fw-bold text-danger">{{ courseToDelete?.name }}?</p>
+                    <p class="text-muted small">
                         <i class="bi bi-info-circle me-1"></i>
                         Hành động này không thể hoàn tác!
                     </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Hủy</button>
-                    <button type="button" class="btn btn-danger" (click)="deleteCourse()" [disabled]="isLoading">
-                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                        Xóa
-                    </button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Hủy</button>
+                <button type="button" class="btn btn-danger" (click)="deleteCourse()" [disabled]="isLoading">
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i class="bi bi-trash me-2"></i>
+                    Xóa
+                </button>
             </div>
         </div>
     </div>

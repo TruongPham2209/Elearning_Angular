@@ -110,65 +110,9 @@
     height: 1rem;
 }
 
-// Modal improvements
-.modal {
-    &.show {
-        animation: modalFadeIn 0.3s ease-out;
-    }
-
-    .modal-dialog {
-        transition: var(--transition);
-
-        &.modal-dialog-centered {
-            animation: modalSlideIn 0.3s ease-out;
-        }
-    }
-
-    .modal-content {
-        border: none;
-        border-radius: 16px;
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-
-        .modal-header {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem;
-
-            .modal-title {
-                font-weight: 600;
-                color: #1e293b;
-            }
-
-            .btn-close {
-                transition: var(--transition);
-
-                &:hover {
-                    transform: rotate(90deg);
-                }
-            }
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            background-color: #f8fafc;
-            border-top: 1px solid var(--border-color);
-            padding: 1rem 1.5rem;
-
-            .btn + .btn {
-                margin-left: 0.5rem;
-            }
-        }
-    }
-}
-
 // Form improvements
 .form-control {
     border-radius: 8px;
-    border: 1px solid var(--border-color);
     transition: var(--transition);
 
     &:focus {

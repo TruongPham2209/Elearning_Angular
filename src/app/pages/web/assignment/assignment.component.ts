@@ -26,15 +26,15 @@ export class WebAssignmentPage {
         id: '1',
         title: 'Bài tập lớn: Xây dựng ứng dụng web với Angular',
         content: `
-      <p>Sinh viên cần xây dựng một ứng dụng web hoàn chỉnh sử dụng Angular framework với các yêu cầu sau:</p>
-      <ul>
-        <li>Sử dụng Angular 19 với TypeScript</li>
-        <li>Thiết kế responsive với Bootstrap</li>
-        <li>Implement các chức năng CRUD cơ bản</li>
-        <li>Tích hợp API REST</li>
-        <li>Có validation và error handling</li>
-      </ul>
-      <p><strong>Lưu ý:</strong> Nộp file dưới dạng ZIP chứa source code và file README hướng dẫn chạy ứng dụng.</p>
+        <p>Sinh viên cần xây dựng một ứng dụng web hoàn chỉnh sử dụng Angular framework với các yêu cầu sau:</p>
+        <ul>
+            <li>Sử dụng Angular 19 với TypeScript</li>
+            <li>Thiết kế responsive với Bootstrap</li>
+            <li>Implement các chức năng CRUD cơ bản</li>
+            <li>Tích hợp API REST</li>
+            <li>Có validation và error handling</li>
+        </ul>
+        <p><strong>Lưu ý:</strong> Nộp file dưới dạng ZIP chứa source code và file README hướng dẫn chạy ứng dụng.</p>
     `,
         deadline: new Date('2026-12-31T23:59:59'),
     };

@@ -162,6 +162,16 @@ export class AdminCoursePage implements OnInit {
         this.showModal = true;
     }
 
+    disableButton(): boolean {
+        return (
+            this.currentCourseForm.name.trim() === '' ||
+            this.currentCourseForm.shortDescription.trim() === '' ||
+            this.currentCourseForm.sessions < 1 ||
+            this.currentCourseForm.sessions > 20 ||
+            this.isLoading
+        );
+    }
+
     closeModal() {
         this.showModal = false;
         this.resetForm();
@@ -227,13 +237,5 @@ export class AdminCoursePage implements OnInit {
     // Navigation
     viewClasses(courseId: string) {
         this.router.navigate(['/admin/classes'], { queryParams: { courseId } });
-    }
-
-    generateUUID(): string {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = (Math.random() * 16) | 0;
-            const v = c == 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
     }
 }

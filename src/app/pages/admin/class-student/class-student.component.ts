@@ -1,113 +1,46 @@
+import { bannedCauseOptions } from './../../../core/models/types/navigator.interface';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-
-// Interface cho Student data
-interface Student {
-    id: string;
-    username: string; // MSSV
-    fullname: string;
-    email: string;
-    isBanned: boolean;
-    isSelected?: boolean; // Cho việc select để ban
-}
-
-// Interface cho Banned Student data
-interface BannedStudent {
-    username: string;
-    fullname: string;
-    reason: string;
-    details: string;
-    bannedBy: string;
-    bannedDate: string;
-}
-
-// Interface cho Class data
-interface ClassData {
-    id: string;
-    name: string;
-    courseId: string;
-}
+import { ClassResponse } from '../../../core/models/api/class.model';
+import { mockBannedStudents, mockClasses, mockStudents } from '../../../core/utils/mockdata.util';
+import { BannedStudentResponse, BanStudentRequest, StudentResponse } from '../../../core/models/api/student.model';
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { BannedCause } from '../../../core/models/enum/banned_cause.model';
 
 @Component({
     selector: 'app-class-student',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, NgbModule],
     templateUrl: './class-student.component.html',
     styleUrl: './class-student.component.scss',
 })
 export class AdminClassStudentPage implements OnInit {
+    banStudentModalReference: any;
+
     classId: string = '';
-    currentClass: ClassData | null = null;
+    currentClass: ClassResponse | null = null;
     activeTab: 'students' | 'banned' = 'students';
     isLoading: boolean = false;
 
-    students: Student[] = [];
-    bannedStudents: BannedStudent[] = [];
-
-    banData = {
-        reason: '',
-        details: '',
+    students: StudentResponse[] = [];
+    bannedStudents: BannedStudentResponse[] = [];
+    banData: BanStudentRequest = {
+        classId: '',
+        students: [],
+        cause: BannedCause.CHEAT,
+        description: '',
     };
+    bannedCauseOptions = bannedCauseOptions;
 
-    // Mock data cho classes
-    private mockClasses: ClassData[] = [
-        { id: '1', name: 'Frontend-K1', courseId: '1' },
-        { id: '2', name: 'Frontend-K2', courseId: '1' },
-        { id: '3', name: 'Mobile-K1', courseId: '2' },
-    ];
-
-    // Mock data cho students
-    private mockStudents: Student[] = [
-        {
-            id: '1',
-            username: 'SV001',
-            fullname: 'Nguyễn Văn An',
-            email: 'nva@example.com',
-            isBanned: false,
-            isSelected: false,
-        },
-        {
-            id: '2',
-            username: 'SV002',
-            fullname: 'Trần Thị Bình',
-            email: 'ttb@example.com',
-            isBanned: false,
-            isSelected: false,
-        },
-        {
-            id: '3',
-            username: 'SV003',
-            fullname: 'Lê Văn Cường',
-            email: 'lvc@example.com',
-            isBanned: false,
-            isSelected: false,
-        },
-        {
-            id: '4',
-            username: 'SV004',
-            fullname: 'Phạm Thị Dung',
-            email: 'ptd@example.com',
-            isBanned: true,
-            isSelected: false,
-        },
-    ];
-
-    // Mock data cho banned students
-    private mockBannedStudents: BannedStudent[] = [
-        {
-            username: 'SV004',
-            fullname: 'Phạm Thị Dung',
-            reason: 'Vi phạm quy định',
-            details: 'Thường xuyên đi muộn, không tham gia đầy đủ các hoạt động học tập',
-            bannedBy: 'Admin',
-            bannedDate: '2024-01-15',
-        },
-    ];
+    private mockClasses: ClassResponse[] = mockClasses;
+    private mockStudents: StudentResponse[] = mockStudents;
+    private mockBannedStudents: BannedStudentResponse[] = mockBannedStudents;
 
     constructor(
         private route: ActivatedRoute,
         private router: Router,
+        private modalService: NgbModal,
     ) {}
 
     ngOnInit(): void {
@@ -126,30 +59,6 @@ export class AdminClassStudentPage implements OnInit {
         });
     }
 
-    private loadClassData(): void {
-        // Simulate API call để lấy thông tin class
-        this.currentClass = this.mockClasses.find((cls) => cls.id === this.classId) || null;
-
-        if (!this.currentClass) {
-            // Nếu không tìm thấy class, redirect về dashboard
-            this.router.navigate(['/admin/dashboard']);
-        }
-    }
-
-    private loadStudents(): void {
-        this.isLoading = true;
-
-        // Simulate API call với loading delay
-        setTimeout(() => {
-            this.students = [...this.mockStudents].map((student) => ({
-                ...student,
-                isSelected: false,
-            }));
-            this.bannedStudents = [...this.mockBannedStudents];
-            this.isLoading = false;
-        }, 800);
-    }
-
     switchTab(tab: 'students' | 'banned'): void {
         if (this.activeTab === tab) return;
 
@@ -166,7 +75,6 @@ export class AdminClassStudentPage implements OnInit {
         const isSelected = event.target.checked;
         this.students.forEach((student) => {
             if (!student.isBanned) {
-                // Chỉ select những student chưa bị ban
                 student.isSelected = isSelected;
             }
         });
@@ -184,71 +92,95 @@ export class AdminClassStudentPage implements OnInit {
     }
 
     onStudentSelectionChange(): void {
-        // Cập nhật trạng thái checkbox "Select All"
         const selectAllCheckbox = document.getElementById('selectAll') as HTMLInputElement;
         if (selectAllCheckbox) {
             selectAllCheckbox.indeterminate = this.isIndeterminate();
         }
     }
 
-    getSelectedStudents(): Student[] {
+    getSelectedStudents(): StudentResponse[] {
         return this.students.filter((s) => s.isSelected && !s.isBanned);
     }
 
-    toggleBanStudent(student: Student): void {
+    disableBanButton(): boolean {
+        return !this.banData.cause || this.banData.description.trim() === '' || this.getSelectedStudents().length === 0;
+    }
+
+    openBulkBanModal(content: any): void {
+        this.banStudentModalReference = this.modalService.open(content, { centered: true, size: 'lg' });
+    }
+
+    toggleBanStudent(student: StudentResponse): void {
         // Simulate API call để toggle ban status
         student.isBanned = !student.isBanned;
 
-        if (student.isBanned) {
-            // Thêm vào danh sách banned
-            const bannedStudent: BannedStudent = {
-                username: student.username,
-                fullname: student.fullname,
-                reason: 'Vi phạm quy định',
-                details: 'Ban trực tiếp từ danh sách sinh viên',
-                bannedBy: 'Admin',
-                bannedDate: new Date().toISOString().split('T')[0],
-            };
-            this.bannedStudents.push(bannedStudent);
-            student.isSelected = false; // Bỏ select khi ban
-        } else {
-            // Xóa khỏi danh sách banned
-            this.bannedStudents = this.bannedStudents.filter((b) => b.username !== student.username);
-        }
-    }
-
-    confirmBulkBan(): void {
-        if (!this.banData.reason || !this.banData.details) {
+        if (!student.isBanned) {
+            this.bannedStudents = this.bannedStudents.filter((b) => b.code !== student.username);
             return;
         }
 
-        const selectedStudents = this.getSelectedStudents();
-        const currentDate = new Date().toISOString().split('T')[0];
+        // Thêm vào danh sách banned
+        const bannedStudent: BannedStudentResponse = {
+            code: student.username,
+            fullname: student.fullname,
+            cause: BannedCause.OTHER,
+            mail: student.email,
+            description: 'Ban trực tiếp từ danh sách sinh viên',
+            bannedBy: 'Admin',
+            bannedDate: new Date(),
+        };
+        this.bannedStudents.push(bannedStudent);
+        student.isSelected = false;
+    }
 
-        // Cập nhật trạng thái ban cho các sinh viên đã chọn
-        selectedStudents.forEach((student) => {
-            student.isBanned = true;
-            student.isSelected = false;
+    confirmBulkBan(): void {
+        if (this.banData.description.trim() === '') {
+            return;
+        }
 
-            // Thêm vào danh sách banned
-            const bannedStudent: BannedStudent = {
-                username: student.username,
-                fullname: student.fullname,
-                reason: this.banData.reason,
-                details: this.banData.details,
-                bannedBy: 'Admin',
-                bannedDate: currentDate,
-            };
-            this.bannedStudents.push(bannedStudent);
-        });
+        const selectedStudents: string[] = this.getSelectedStudents().map((s) => s.username);
+        if (selectedStudents.length === 0) {
+            return;
+        }
+        this.banData.students = selectedStudents;
+        this.banData.description = this.banData.description.trim();
+        console.log(
+            `Xác nhận ban ${selectedStudents.length} sinh viên với nguyên nhân: ${this.banData.cause}, mô tả: ${this.banData.description}`,
+        );
 
         // Đóng modal
-        const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('bulkBanModal'));
-        modal.hide();
+        if (this.banStudentModalReference) {
+            this.banStudentModalReference.close();
+        }
 
         // Reset form
-        this.banData = { reason: '', details: '' };
-
+        this.banData = { cause: BannedCause.OTHER, description: '', classId: this.classId, students: [] };
         console.log(`Đã ban ${selectedStudents.length} sinh viên`);
+
+        // Bỏ chọn tất cả checkbox
+        this.students.forEach((student) => (student.isSelected = false));
+    }
+
+    private loadClassData(): void {
+        this.currentClass = this.mockClasses.find((cls) => cls.id === this.classId) || null;
+        this.banData.classId = this.classId;
+
+        if (!this.currentClass) {
+            this.router.navigate(['/admin/dashboard']);
+        }
+    }
+
+    private loadStudents(): void {
+        this.isLoading = true;
+
+        // Simulate API call với loading delay
+        setTimeout(() => {
+            this.students = [...this.mockStudents].map((student) => ({
+                ...student,
+                isSelected: false,
+            }));
+            this.bannedStudents = [...this.mockBannedStudents];
+            this.isLoading = false;
+        }, 800);
     }
 }
