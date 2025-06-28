@@ -62,6 +62,12 @@ export class LecturerClassPage implements OnInit {
         }
     }
 
+    goToManageStudent() {
+        const queryParams = this.router.routerState.snapshot.root.queryParams;
+        const classId = queryParams['id'];
+        this.router.navigate(['/lecturer/classes/students'], { queryParams: { classId } });
+    }
+
     // Lession management
     toggleLession(lessionId: string) {
         this.expandedLessions.has(lessionId)
@@ -88,13 +94,6 @@ export class LecturerClassPage implements OnInit {
 
     createAnnouncement() {
         if (this.newAnnouncement.title && this.newAnnouncement.content) {
-            // const announcement: Announcement = {
-            //     id: Date.now().toString(),
-            //     title: this.newAnnouncement.title,
-            //     content: this.newAnnouncement.content,
-            //     createdAt: new Date(),
-            // };
-            // this.announcements.unshift(announcement);
             this.createAnnouncementModalRef?.close();
             this.newAnnouncement = { classId: this.newAnnouncement.classId, title: '', content: '' };
         }

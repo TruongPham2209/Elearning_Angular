@@ -11,6 +11,7 @@ export const lecturerRoutes: Routes = [
             { path: '', redirectTo: '/lecturer/home', pathMatch: 'full' },
             { path: 'home', component: LecturerPage.Home, title: 'Home Page' },
             { path: 'classes', component: LecturerPage.Class, title: 'Manage Classes' },
+            { path: 'classes/students', component: LecturerPage.ManageStudent, title: 'Manage Students' },
             { path: 'submissions', component: LecturerPage.Submission, title: 'Submissions' },
         ],
     },

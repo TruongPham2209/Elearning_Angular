@@ -11,7 +11,7 @@ export const adminRoutes: Routes = [
             { path: '', redirectTo: '/admin/dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: AdminPage.Dashboard, title: 'Dashboard' },
             { path: 'classes', component: AdminPage.Class, title: 'Manage Classes' },
-            { path: 'classes/students', component: AdminPage.ClassStudent, title: 'Manage Class Students' },
+            { path: 'classes/students', component: AdminPage.ManageStudent, title: 'Manage Students' },
             { path: 'courses', component: AdminPage.Course, title: 'Manage Courses' },
             { path: 'notifications', component: AdminPage.Notification, title: 'Manage Notifications' },
             { path: 'users', component: AdminPage.User, title: 'Manage Users' },

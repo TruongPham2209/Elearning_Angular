@@ -1,1 +1,290 @@
-<p>class-student works!</p>
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Quản lý sinh viên lớp</h2>
+            <p class="text-muted mb-0" *ngIf="currentClass">Lớp: {{ currentClass.name }}</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        [class.active]="activeTab === 'students'"
+                        type="button"
+                        role="tab"
+                        (click)="switchTab('students')"
+                    >
+                        <i class="bi bi-people me-2"></i>
+                        Danh sách sinh viên
+                        <span class="badge bg-primary ms-2">{{ students.length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link"
+                        [class.active]="activeTab === 'banned'"
+                        type="button"
+                        role="tab"
+                        (click)="switchTab('banned')"
+                    >
+                        <i class="bi bi-person-x me-2"></i>
+                        Sinh viên bị ban
+                        <span class="badge bg-danger ms-2">{{ bannedStudents.length }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- Students Tab -->
+            <div *ngIf="activeTab === 'students'">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="selectAll"
+                                            [checked]="isAllSelected()"
+                                            [indeterminate]="isIndeterminate()"
+                                            (change)="toggleSelectAll($event)"
+                                        />
+                                        <b>#</b>
+                                    </div>
+                                </th>
+                                <th scope="col">MSSV</th>
+                                <th scope="col">Họ và tên</th>
+                                <th scope="col">Email</th>
+                                <th scope="col" class="text-center">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <!-- Loading Row -->
+                        <tbody *ngIf="isLoading">
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span>Đang tải dữ liệu...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <!-- Data Rows -->
+                        <tbody *ngIf="!isLoading">
+                            <tr
+                                *ngFor="let student of students; let i = index"
+                                [class.table-danger]="student.isSelected"
+                            >
+                                <td class="ps-4">
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            [id]="'student-' + student.id"
+                                            [(ngModel)]="student.isSelected"
+                                            (change)="onStudentSelectionChange()"
+                                            [disabled]="student.isBanned"
+                                        />
+                                        <i
+                                            ><b>{{ i + 1 }}</b></i
+                                        >
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>{{ student.username }}</strong>
+                                </td>
+                                <td>{{ student.fullname }}</td>
+                                <td>{{ student.email }}</td>
+                                <td class="text-center">
+                                    <span
+                                        class="badge"
+                                        [class.bg-success]="!student.isBanned"
+                                        [class.bg-danger]="student.isBanned"
+                                    >
+                                        {{ student.isBanned ? 'Đã ban' : 'Hoạt động' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr *ngIf="students.length === 0">
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-people display-4 d-block mb-3"></i>
+                                        <p>Chưa có sinh viên nào trong lớp</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bulk Ban Actions -->
+                <div class="p-3 border-top bg-light" *ngIf="getSelectedStudents().length > 0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted"> Đã chọn {{ getSelectedStudents().length }} sinh viên </span>
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm me-5"
+                            (click)="openBulkBanModal(bulkBanModal)"
+                        >
+                            <i class="bi bi-person-x me-2"></i>
+                            Cấm thi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banned Students Tab -->
+            <div *ngIf="activeTab === 'banned'">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">MSSV</th>
+                                <th scope="col">Họ và tên</th>
+                                <th scope="col">Nguyên nhân</th>
+                                <th scope="col">Chi tiết</th>
+                                <th scope="col">Bị ban bởi</th>
+                                <th scope="col">Ngày ban</th>
+                                <th scope="col" class="text-center">Gỡ ban</th>
+                            </tr>
+                        </thead>
+                        <!-- Loading Row -->
+                        <tbody *ngIf="isLoading">
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span>Đang tải dữ liệu...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <!-- Data Rows -->
+                        <tbody *ngIf="!isLoading">
+                            <tr *ngFor="let bannedStudent of bannedStudents; let i = index">
+                                <td>
+                                    <strong>{{ bannedStudent.code }}</strong>
+                                </td>
+                                <td>{{ bannedStudent.fullname }}</td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">{{ bannedStudent.cause }}</span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="text-truncate d-inline-block"
+                                        style="max-width: 200px"
+                                        [title]="bannedStudent.description"
+                                    >
+                                        {{ bannedStudent.description }}
+                                    </span>
+                                </td>
+                                <td>{{ bannedStudent.bannedBy }}</td>
+                                <td>{{ bannedStudent.bannedDate | date: 'dd/MM/yyyy' }}</td>
+                                <td class="text-center">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-success"
+                                        title="Bỏ ban sinh viên"
+                                    >
+                                        <i class="bi bi-person-check"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="bannedStudents.length === 0">
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-shield-check display-4 d-block mb-3"></i>
+                                        <p>Không có sinh viên nào bị ban</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Ban Modal -->
+<ng-template #bulkBanModal let-modal>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="bulkBanModalLabel">Xác nhận cấm thi sinh viên</h5>
+            <button type="button" class="btn-close" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Cảnh báo:</strong> Bạn đang thực hiện ban {{ getSelectedStudents().length }} sinh viên dưới đây:
+            </div>
+
+            <div class="table-responsive mb-3">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>MSSV</th>
+                            <th>Họ và tên</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let student of getSelectedStudents()">
+                            <td>
+                                <strong>{{ student.username }}</strong>
+                            </td>
+                            <td>{{ student.fullname }}</td>
+                            <td>{{ student.email }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <form #banForm="ngForm">
+                <div class="mb-3">
+                    <label for="banReason" class="form-label"
+                        >Nguyên nhân cấm thi <span class="text-danger">*</span></label
+                    >
+                    <select class="form-select" id="banReason" [(ngModel)]="banData.cause" name="banReason" required>
+                        <option value="" disabled selected>Chọn nguyên nhân</option>
+                        <option *ngFor="let cause of bannedCauseOptions" [value]="cause.value">
+                            {{ cause.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="banDetails" class="form-label">Chi tiết <span class="text-danger">*</span></label>
+                    <textarea
+                        class="form-control"
+                        id="banDetails"
+                        rows="3"
+                        [(ngModel)]="banData.description"
+                        name="banDetails"
+                        required
+                        placeholder="Mô tả chi tiết nguyên nhân ban sinh viên..."
+                    ></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Hủy</button>
+            <button type="button" class="btn btn-danger" [disabled]="disableBanButton()" (click)="confirmBulkBan()">
+                <i class="bi bi-person-x me-2"></i>
+                Xác nhận cấm thi
+            </button>
+        </div>
+    </div>
+</ng-template>

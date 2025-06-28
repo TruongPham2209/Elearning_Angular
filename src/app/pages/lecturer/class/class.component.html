@@ -1,7 +1,13 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="mb-4">Quản lý lớp học</h2>
+            <div class="class-manage-header d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-4">Quản lý lớp học</h2>
+                <button class="btn btn-primary" (click)="goToManageStudent()">
+                    <i class="bi bi-people-fill me-2"></i>
+                    Danh sách sinh viên
+                </button>
+            </div>
 
             <!-- Quản lý buổi học -->
             <div class="card mb-4">

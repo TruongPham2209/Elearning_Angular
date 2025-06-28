@@ -10,12 +10,12 @@ import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BannedCause } from '../../../core/models/enum/banned_cause.model';
 
 @Component({
-    selector: 'app-class-student',
+    selector: 'admin-manage-student-page',
     imports: [CommonModule, FormsModule, RouterModule, NgbModule],
     templateUrl: './class-student.component.html',
     styleUrl: './class-student.component.scss',
 })
-export class AdminClassStudentPage implements OnInit {
+export class AdminManageStudentPage implements OnInit {
     banStudentModalReference: any;
 
     classId: string = '';
