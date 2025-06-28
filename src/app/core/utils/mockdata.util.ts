@@ -1,5 +1,7 @@
+import { AnnouncementResponse } from '../models/api/announcement.model';
 import { ClassResponse } from '../models/api/class.model';
 import { CourseResponse } from '../models/api/course.model';
+import { LessionResponse } from '../models/api/lession.model';
 import { NotificationResponse } from '../models/api/notification.model';
 import { SemesterResponse, SemesterWithClassesResponse } from '../models/api/semester.model';
 import { BannedStudentResponse, StudentResponse } from '../models/api/student.model';
@@ -200,5 +202,52 @@ export const mockSemestersWithClasses: SemesterWithClassesResponse[] = [
         id: '3',
         title: 'Học kỳ hè năm 2025',
         classes: mockClasses,
+    },
+];
+
+export const mockLessions: LessionResponse[] = [
+    {
+        id: '1',
+        name: 'Buổi học 1: Giới thiệu khóa học',
+        documents: [
+            {
+                id: '1',
+                title: 'Bài giảng tuần 1',
+                content: 'Nội dung giới thiệu về khóa học và mục tiêu học tập',
+                uploadAt: new Date('2024-01-15'),
+                fileId: 'file1',
+                fileName: 'bai-giang-tuan-1.pdf',
+            },
+        ],
+        assignments: [
+            {
+                id: '1',
+                title: 'Bài tập về nhà tuần 1',
+                content: 'Hoàn thành bài tập trong sách giáo khoa',
+                deadline: new Date('2024-12-30'),
+            },
+        ],
+    },
+    {
+        id: '2',
+        name: 'Buổi học 2: Lý thuyết cơ bản',
+        documents: [],
+        assignments: [],
+    },
+];
+
+export const mockAnnouncements: AnnouncementResponse[] = [
+    {
+        id: '1',
+        title: 'Thông báo lịch thi giữa kỳ',
+        content:
+            'Lịch thi giữa kỳ sẽ diễn ra từ ngày 20/01 đến 25/01. Sinh viên vui lòng kiểm tra lịch thi trên hệ thống.',
+        createdAt: new Date('2025-01-10'),
+    },
+    {
+        id: '2',
+        title: 'Cập nhật chính sách học phí',
+        content: 'Chính sách học phí mới sẽ được áp dụng từ học kỳ II. Vui lòng xem chi tiết tại mục "Học phí".',
+        createdAt: new Date('2025-01-08'),
     },
 ];

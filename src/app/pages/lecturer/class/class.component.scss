@@ -6,8 +6,9 @@ $border-color: #dee2e6;
 $text-color: #495057;
 $light-bg: #f8f9fa;
 $white: #ffffff;
-$shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-$transition: all 0.3s ease;
+$shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+$transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+$modal-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 
 // Base styles
 .container-fluid {
@@ -17,28 +18,30 @@ $transition: all 0.3s ease;
 }
 
 h2 {
-    color: $text-color;
+    color: darken($text-color, 10%);
     font-weight: 600;
 }
 
 // Card styles
 .card {
     border: 1px solid $border-color;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: $shadow;
     transition: $transition;
+    overflow: hidden;
 
     &:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
     }
 
     .card-header {
         background-color: $white;
         border-bottom: 1px solid $border-color;
-        padding: 1.25rem;
+        padding: 1.25rem 1.5rem;
+        position: relative;
 
         h4 {
-            color: $text-color;
+            color: darken($text-color, 10%);
             margin: 0;
             font-weight: 600;
         }
@@ -47,156 +50,202 @@ h2 {
     .card-body {
         background-color: $white;
         padding: 1.5rem;
-
-        // Dropdown animation for announcements
-        &.announcement-body {
-            max-height: 0;
-            overflow: hidden;
-            padding: 0 1.5rem;
-            transition:
-                max-height 0.4s ease,
-                padding 0.3s ease;
-
-            &.show {
-                max-height: 1000px;
-                padding: 1.5rem;
-            }
-        }
     }
 }
 
-// Accordion styles with dropdown effects
+// Enhanced Accordion with smooth animations
 .accordion {
+    --bs-accordion-border-radius: 8px;
+    --bs-accordion-inner-border-radius: 6px;
+    --bs-accordion-btn-padding-x: 1.5rem;
+    --bs-accordion-btn-padding-y: 1rem;
+    --bs-accordion-body-padding-x: 1.5rem;
+    --bs-accordion-body-padding-y: 1.5rem;
+    --bs-accordion-active-color: $primary-color;
+    --bs-accordion-active-bg: rgba($primary-color, 0.08);
+
     .accordion-item {
         border: 1px solid $border-color;
         border-radius: 8px;
         margin-bottom: 1rem;
         overflow: hidden;
+        transition: $transition;
+
+        &:hover {
+            border-color: rgba($primary-color, 0.3);
+        }
 
         .accordion-header {
             .accordion-button {
                 background-color: $white;
-                border: none;
                 color: $text-color;
                 font-weight: 500;
                 transition: $transition;
+                position: relative;
+                z-index: 1;
 
                 &:focus {
                     box-shadow: none;
-                    border-color: $primary-color;
+                    border-color: transparent;
                 }
 
                 &:not(.collapsed) {
-                    background-color: lighten($primary-color, 45%);
+                    background-color: rgba($primary-color, 0.08);
                     color: $primary-color;
+                    box-shadow: none;
                 }
 
-                // Dropdown arrow animation
+                // Custom arrow animation
                 &::after {
-                    transition: transform 0.3s ease;
-                }
-
-                &.collapsed::after {
-                    transform: rotate(0deg);
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23212529'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+                    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+                    width: 1.25rem;
+                    height: 1.25rem;
+                    background-size: 1.25rem;
                 }
 
                 &:not(.collapsed)::after {
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23007bff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
                     transform: rotate(180deg);
                 }
             }
         }
 
         .accordion-collapse {
-            transition: height 0.35s ease;
+            transition:
+                height 0.35s ease,
+                opacity 0.3s ease;
+
+            &.collapse:not(.show) {
+                display: block;
+                height: 0;
+                overflow: hidden;
+                opacity: 0;
+            }
+
+            &.collapsing {
+                opacity: 0.5;
+            }
+
+            &.collapse.show {
+                opacity: 1;
+            }
         }
 
         .accordion-body {
             background-color: lighten($light-bg, 2%);
+            border-top: 1px solid rgba($border-color, 0.5);
+        }
+    }
+}
+
+// Enhanced Dropdown Toggle for Announcements
+.announcement-dropdown {
+    .card-body {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding: 0 1.5rem;
+        transition:
+            max-height 0.8s ease-in-out,
+            opacity 0.7s ease 0.1s,
+            padding 0.7s ease;
+
+        &.show {
+            max-height: 2000px;
+            opacity: 1;
             padding: 1.5rem;
-            border-top: 1px solid $border-color;
+            transition:
+                max-height 0.8s ease-in-out,
+                opacity 0.7s ease,
+                padding 0.7s ease 0.1s;
         }
     }
 }
 
-// Dropdown toggle button
-.dropdown-toggle-btn {
-    background: none;
-    border: none;
-    color: $text-color;
-    padding: 0.5rem;
-    border-radius: 4px;
-    transition: $transition;
-
-    &:hover {
-        background-color: $light-bg;
-        color: $primary-color;
-    }
-
-    i {
-        font-size: 1.2rem;
-        transition: transform 0.3s ease;
-
-        &.rotated {
-            transform: rotate(180deg);
-        }
-    }
-}
-
-// Section headers
-h5 {
-    color: $text-color;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-// Button styles - simple and clean
+// Button styles with better hover effects
 .btn {
     border-radius: 6px;
     font-weight: 500;
     padding: 0.5rem 1rem;
-    transition: $transition;
+    transition:
+        transform 0.2s ease,
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba($white, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%, -50%);
+        transform-origin: 50% 50%;
+    }
+
+    &:focus:not(:active)::after {
+        animation: ripple 0.6s ease-out;
+    }
 
     &.btn-primary {
         background-color: $primary-color;
         border-color: $primary-color;
+        box-shadow: 0 2px 5px rgba($primary-color, 0.2);
 
         &:hover {
             background-color: darken($primary-color, 8%);
             border-color: darken($primary-color, 8%);
-            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba($primary-color, 0.3);
+            transform: translateY(-2px);
         }
     }
 
     &.btn-success {
         background-color: $success-color;
         border-color: $success-color;
+        box-shadow: 0 2px 5px rgba($success-color, 0.2);
 
         &:hover {
             background-color: darken($success-color, 8%);
             border-color: darken($success-color, 8%);
-            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba($success-color, 0.3);
+            transform: translateY(-2px);
         }
     }
 
     &.btn-outline-danger {
         border-color: $danger-color;
         color: $danger-color;
+        background-color: transparent;
 
         &:hover {
             background-color: $danger-color;
             border-color: $danger-color;
             color: $white;
+            box-shadow: 0 2px 5px rgba($danger-color, 0.2);
         }
     }
 
     &.btn-outline-secondary {
         border-color: #6c757d;
         color: #6c757d;
+        background-color: transparent;
 
         &:hover {
             background-color: #6c757d;
             border-color: #6c757d;
             color: $white;
+            box-shadow: 0 2px 5px rgba(#6c757d, 0.2);
         }
     }
 
@@ -206,13 +255,18 @@ h5 {
     }
 }
 
-// Document and assignment cards
+// Document and assignment cards with better hover effects
 .card.mb-2 {
-    transition: $transition;
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+    border: 1px solid rgba($border-color, 0.7);
 
     &:hover {
-        transform: translateY(-2px);
-        border-color: $primary-color;
+        transform: translateY(-3px);
+        border-color: rgba($primary-color, 0.5);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     }
 
     .card-body {
@@ -220,123 +274,101 @@ h5 {
     }
 
     .card-title {
-        color: $text-color;
+        color: darken($text-color, 10%);
         font-weight: 600;
         margin-bottom: 0.5rem;
+        transition: color 0.2s ease;
 
         a {
             color: inherit;
             text-decoration: none;
+            transition: color 0.2s ease;
 
             &:hover {
                 color: $primary-color;
-                text-decoration: underline;
             }
         }
     }
 
     .card-text {
-        color: #6c757d;
+        color: lighten($text-color, 15%);
         margin-bottom: 0.5rem;
 
         a {
             color: $primary-color;
             text-decoration: none;
+            position: relative;
 
-            &:hover {
-                text-decoration: underline;
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 0;
+                height: 1px;
+                background-color: $primary-color;
+                transition: width 0.3s ease;
+            }
+
+            &:hover::after {
+                width: 100%;
             }
         }
     }
 }
 
-// Modal styles - clean and simple
-.modal {
-    .modal-content {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    .modal-header {
-        background-color: $white;
-        border-bottom: 1px solid $border-color;
-        padding: 1.5rem;
-
-        .modal-title {
-            color: $text-color;
-            font-weight: 600;
-        }
-    }
-
-    .modal-body {
-        padding: 1.5rem;
-        background-color: $white;
-    }
-
-    .modal-footer {
-        background-color: $white;
-        border-top: 1px solid $border-color;
-        padding: 1rem 1.5rem;
-    }
-}
-
-// Form styles
+// Form styles with better focus states
 .form-label {
     font-weight: 500;
-    color: $text-color;
+    color: darken($text-color, 5%);
     margin-bottom: 0.5rem;
 }
 
 .form-control {
     border: 1px solid $border-color;
     border-radius: 6px;
-    padding: 0.75rem;
     transition:
-        border-color 0.15s ease-in-out,
-        box-shadow 0.15s ease-in-out;
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+    padding: 0.5rem 0.75rem;
 
     &:focus {
-        border-color: $primary-color;
-        box-shadow: 0 0 0 0.2rem rgba($primary-color, 0.25);
+        border-color: rgba($primary-color, 0.7);
+        box-shadow: 0 0 0 0.25rem rgba($primary-color, 0.15);
     }
 }
 
-// Empty state
+// Empty state with subtle animation
 .text-muted {
     text-align: center;
     background-color: lighten($light-bg, 2%);
-    border: 1px dashed $border-color;
-    color: #6c757d;
-    padding: 4px;
+    color: lighten($text-color, 20%);
+    border-radius: 6px;
+    animation: pulse 2s infinite;
 }
 
-// Announcement dropdown specific styles
-.announcement-section {
-    .card-body {
+// Ripple effect for buttons
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(25, 25);
         opacity: 0;
-        transform: translateY(-10px);
-        transition:
-            opacity 0.3s ease,
-            transform 0.3s ease,
-            max-height 0.4s ease;
-
-        &.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
     }
 }
 
-// Delete modal animation
-.modal.fade {
-    .modal-dialog {
-        transform: scale(0.9);
-        transition: transform 0.3s ease;
+// Pulse animation for empty states
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
     }
-
-    &.show .modal-dialog {
-        transform: scale(1);
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.8;
     }
 }
 
@@ -348,49 +380,16 @@ h5 {
 
     .card-header {
         padding: 1rem;
-
-        .d-flex {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
     }
 
-    .accordion-body {
-        padding: 1rem;
+    .accordion {
+        --bs-accordion-btn-padding-x: 1rem;
+        --bs-accordion-btn-padding-y: 0.75rem;
+        --bs-accordion-body-padding-x: 1rem;
+        --bs-accordion-body-padding-y: 1rem;
     }
 
-    .modal-dialog {
-        margin: 1rem;
-    }
-}
-
-// Utility classes for dropdown animations
-.slide-down {
-    animation: slideDown 0.3s ease;
-}
-
-.slide-up {
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-10px);
+    .btn {
+        padding: 0.5rem 0.75rem;
     }
 }

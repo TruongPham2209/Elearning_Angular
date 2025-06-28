@@ -29,13 +29,13 @@
                                             <h5>Tài liệu</h5>
                                             <button
                                                 class="btn btn-primary btn-sm"
-                                                (click)="openDocumentModal(lession.id)"
+                                                (click)="openDocumentModal(lession.id, createDocumentModal)"
                                             >
                                                 <i class="bi bi-plus"></i> Thêm tài liệu
                                             </button>
                                         </div>
 
-                                        <div *ngIf="lession.documents.length === 0" class="text-muted">
+                                        <div *ngIf="lession.documents?.length === 0" class="text-muted">
                                             Chưa có tài liệu nào
                                         </div>
 
@@ -52,12 +52,13 @@
                                                             }}</a>
                                                         </p>
                                                         <small class="text-muted">
-                                                            Tạo ngày: {{ formatDate(document.createdAt) }}
+                                                            <i class="bi bi-clock me-1 text-primary"></i>
+                                                            Tạo ngày: {{ document.uploadAt | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
                                                     <button
                                                         class="btn btn-outline-danger btn-sm"
-                                                        (click)="confirmDeleteDocument(document)"
+                                                        (click)="confirmDeleteDocument(document, deleteDocumentModal)"
                                                     >
                                                         <i class="bi bi-trash"></i>
                                                     </button>
@@ -72,13 +73,13 @@
                                             <h5>Bài tập</h5>
                                             <button
                                                 class="btn btn-success btn-sm"
-                                                (click)="openAssignmentModal(lession.id)"
+                                                (click)="openAssignmentModal(lession.id, createAssignmentModal)"
                                             >
                                                 <i class="bi bi-plus"></i> Thêm bài tập
                                             </button>
                                         </div>
 
-                                        <div *ngIf="lession.assignments.length === 0" class="text-muted">
+                                        <div *ngIf="lession.assignments?.length === 0" class="text-muted">
                                             Chưa có bài tập nào
                                         </div>
 
@@ -96,12 +97,15 @@
                                                             </a>
                                                         </h6>
                                                         <small class="text-muted">
-                                                            Hạn nộp: {{ formatDate(assignment.deadline) }}
+                                                            <i class="bi bi-calendar me-1 text-primary"></i>
+                                                            Hạn nộp: {{ assignment.deadline | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
                                                     <button
                                                         class="btn btn-outline-danger btn-sm"
-                                                        (click)="confirmDeleteAssignment(assignment)"
+                                                        (click)="
+                                                            confirmDeleteAssignment(assignment, deleteAssignmentModal)
+                                                        "
                                                     >
                                                         <i class="bi bi-trash"></i>
                                                     </button>
@@ -131,32 +135,32 @@
                     </div>
                 </div>
                 <div class="card-body" [class.d-none]="!showAnnouncementDropdown">
-                    <div class="mb-3">
-                        <button class="btn btn-primary" (click)="openAnnouncementModal()">
+                    <div class="mb-3 justify-content-end d-flex">
+                        <button class="btn btn-primary" (click)="openAnnouncementModal(createAnnouncementModal)">
                             <i class="bi bi-plus"></i> Tạo thông báo mới
                         </button>
                     </div>
 
                     <div *ngIf="announcements.length === 0" class="text-muted">Chưa có thông báo nào</div>
 
-                    <div *ngFor="let announcement of announcements" class="card mb-2">
+                    <div *ngFor="let announcement of announcements" class="card mb-4" style="cursor: pointer">
                         <div class="card-body">
                             <h6 class="card-title">{{ announcement.title }}</h6>
-                            <p class="card-text">
-                                <a
-                                    href="javascript:void(0)"
+                            <div class="card-text">
+                                <div
                                     class="text-decoration-none"
-                                    (click)="viewAnnouncementDetail(announcement)"
+                                    (click)="viewAnnouncementDetail(announcement, announcementDetailModal)"
                                 >
                                     {{
                                         announcement.content.length > 100
                                             ? (announcement.content | slice: 0 : 100) + '...'
                                             : announcement.content
                                     }}
-                                </a>
-                            </p>
+                                </div>
+                            </div>
                             <small class="text-muted">
-                                {{ formatDate(announcement.createdAt) }}
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ announcement.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                             </small>
                         </div>
                     </div>
@@ -166,271 +170,341 @@
     </div>
 </div>
 
-<!-- Modal tạo thông báo -->
-<div
-    class="modal fade"
-    [class.show]="showAnnouncementModal"
-    [style.display]="showAnnouncementModal ? 'block' : 'none'"
-    tabindex="-1"
->
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tạo thông báo mới</h5>
-                <button type="button" class="btn-close" (click)="closeAnnouncementModal()"></button>
-            </div>
-            <div class="modal-body">
-                <form (ngSubmit)="createAnnouncement()">
-                    <div class="mb-3">
-                        <label for="announcementTitle" class="form-label">Tiêu đề</label>
+<!-- Modal tạo thông báo - Improved -->
+<ng-template #createAnnouncementModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary px-4">
+            <h5 class="modal-title fw-semibold text-white"><i class="bi bi-megaphone me-2"></i>Tạo thông báo mới</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <form (ngSubmit)="createAnnouncement()">
+                <div class="mb-4">
+                    <label for="announcementTitle" class="form-label fw-medium">
+                        <i class="bi bi-card-heading me-1 text-primary"></i>Tiêu đề
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-pencil text-primary"></i>
+                        </span>
                         <input
                             type="text"
-                            class="form-control"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="announcementTitle"
                             [(ngModel)]="newAnnouncement.title"
                             name="title"
                             required
+                            placeholder="Nhập tiêu đề thông báo"
                         />
                     </div>
-                    <div class="mb-3">
-                        <label for="announcementContent" class="form-label">Nội dung</label>
+                </div>
+                <div class="mb-4">
+                    <label for="announcementContent" class="form-label fw-medium">
+                        <i class="bi bi-text-paragraph me-1 text-primary"></i>Nội dung
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary align-items-start">
+                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
+                        </span>
                         <textarea
-                            class="form-control"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="announcementContent"
-                            rows="4"
+                            rows="6"
                             [(ngModel)]="newAnnouncement.content"
                             name="content"
                             required
+                            placeholder="Nhập nội dung thông báo"
                         ></textarea>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" (click)="closeAnnouncementModal()">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Tạo thông báo</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary rounded-2 px-4"
+                        (click)="modal.dismiss('cancel')"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="submit"
+                        class="btn btn-primary rounded-2 px-4"
+                        [disabled]="disableCreateAnnouncementButton()"
+                    >
+                        <i class="bi bi-send-check me-2"></i>Tạo thông báo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
+</ng-template>
 
-<!-- Modal chi tiết thông báo -->
-<div
-    class="modal fade"
-    [class.show]="showAnnouncementDetailModal"
-    [style.display]="showAnnouncementDetailModal ? 'block' : 'none'"
-    tabindex="-1"
->
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">{{ selectedAnnouncement?.title }}</h5>
-                <button type="button" class="btn-close" (click)="closeAnnouncementDetailModal()"></button>
+<!-- Modal chi tiết thông báo - Improved -->
+<ng-template #announcementDetailModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-info px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedAnnouncement?.title }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-4">
+                <div class="border p-3 bg-light rounded">
+                    <div class="preformatted-text" [innerHTML]="selectedAnnouncement?.content"></div>
+                </div>
             </div>
-            <div class="modal-body">
-                <p>{{ selectedAnnouncement?.content }}</p>
-                <hr />
-                <small class="text-muted">
-                    Ngày tạo: {{ selectedAnnouncement ? formatDate(selectedAnnouncement.createdAt) : '' }}
-                </small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="closeAnnouncementDetailModal()">Đóng</button>
+            <div class="text-muted small">
+                <i class="bi bi-calendar me-1"></i>
+                Ngày tạo: {{ selectedAnnouncement?.createdAt | date: 'dd/MM/yyyy HH:mm' }}
             </div>
         </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Đóng
+            </button>
+        </div>
     </div>
-</div>
+</ng-template>
 
-<!-- Modal tạo tài liệu -->
-<div
-    class="modal fade"
-    [class.show]="showDocumentModal"
-    [style.display]="showDocumentModal ? 'block' : 'none'"
-    tabindex="-1"
->
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thêm tài liệu</h5>
-                <button type="button" class="btn-close" (click)="closeDocumentModal()"></button>
-            </div>
-            <div class="modal-body">
-                <form (ngSubmit)="createDocument()">
-                    <div class="mb-3">
-                        <label for="documentTitle" class="form-label">Tiêu đề</label>
+<!-- Modal tạo tài liệu - Improved -->
+<ng-template #createDocumentModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-plus me-2"></i>Thêm tài liệu
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <form (ngSubmit)="createDocument()">
+                <div class="mb-4">
+                    <label for="documentTitle" class="form-label fw-medium">
+                        <i class="bi bi-card-heading me-1 text-primary"></i>Tiêu đề
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-pencil text-primary"></i>
+                        </span>
                         <input
                             type="text"
-                            class="form-control"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="documentTitle"
                             [(ngModel)]="newDocument.title"
                             name="title"
                             required
+                            placeholder="Nhập tiêu đề tài liệu"
                         />
                     </div>
-                    <div class="mb-3">
-                        <label for="documentContent" class="form-label">Nội dung</label>
+                </div>
+                <div class="mb-4">
+                    <label for="documentContent" class="form-label fw-medium">
+                        <i class="bi bi-text-paragraph me-1 text-primary"></i>Mô tả
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary align-items-start">
+                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
+                        </span>
                         <textarea
-                            class="form-control"
+                            class="form-control form-control-lg border-primary border-end-1 rounded-end-2"
                             id="documentContent"
-                            rows="3"
+                            rows="4"
                             [(ngModel)]="newDocument.content"
                             name="content"
                             required
+                            placeholder="Nhập mô tả tài liệu"
                         ></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="documentFile" class="form-label">File đính kèm</label>
+                </div>
+                <div class="mb-4">
+                    <label for="documentFile" class="form-label fw-medium d-flex align-items-center cursor-pointer">
+                        <i class="bi bi-paperclip me-1 text-primary"></i> File đính kèm
+                    </label>
+                    <div class="input-group">
+                        <button type="button" class="btn btn-outline-primary" (click)="fileInput.click()">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i> Chọn file
+                        </button>
                         <input
                             type="file"
-                            class="form-control"
+                            class="d-none"
                             id="documentFile"
+                            #fileInput
                             (change)="onFileSelect($event)"
                             required
                         />
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" (click)="closeDocumentModal()">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Thêm tài liệu</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal tạo bài tập -->
-<div
-    class="modal fade"
-    [class.show]="showAssignmentModal"
-    [style.display]="showAssignmentModal ? 'block' : 'none'"
-    tabindex="-1"
->
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thêm bài tập</h5>
-                <button type="button" class="btn-close" (click)="closeAssignmentModal()"></button>
-            </div>
-            <div class="modal-body">
-                <form (ngSubmit)="createAssignment()">
-                    <div class="mb-3">
-                        <label for="assignmentTitle" class="form-label">Tiêu đề</label>
                         <input
                             type="text"
-                            class="form-control"
+                            class="form-control form-control-lg border-primary"
+                            [value]="selectedFile?.name || 'Chưa chọn file'"
+                            readonly
+                        />
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary rounded-2 px-4"
+                        (click)="modal.dismiss('cancel')"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="submit"
+                        class="btn btn-primary rounded-2 px-4"
+                        [disabled]="disableCreateDocumentButton()"
+                    >
+                        <i class="bi bi-save me-2"></i>Thêm tài liệu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Modal tạo bài tập - Improved -->
+<ng-template #createAssignmentModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-primary px-4">
+            <h5 class="modal-title fw-semibold text-white"><i class="bi bi-journal-plus me-2"></i>Thêm bài tập</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <form (ngSubmit)="createAssignment()">
+                <div class="mb-4">
+                    <label for="assignmentTitle" class="form-label fw-medium">
+                        <i class="bi bi-card-heading me-1 text-primary"></i>Tiêu đề
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-pencil text-primary"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="assignmentTitle"
                             [(ngModel)]="newAssignment.title"
                             name="title"
                             required
+                            placeholder="Nhập tiêu đề bài tập"
                         />
                     </div>
-                    <div class="mb-3">
-                        <label for="assignmentContent" class="form-label">Nội dung</label>
+                </div>
+                <div class="mb-4">
+                    <label for="assignmentContent" class="form-label fw-medium">
+                        <i class="bi bi-text-paragraph me-1 text-primary"></i>Nội dung
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary align-items-start">
+                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
+                        </span>
                         <textarea
-                            class="form-control"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="assignmentContent"
-                            rows="3"
+                            rows="4"
                             [(ngModel)]="newAssignment.content"
                             name="content"
                             required
+                            placeholder="Nhập nội dung bài tập"
                         ></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="assignmentDeadline" class="form-label">Hạn nộp (dd/MM/yyyy)</label>
+                </div>
+                <div class="mb-4">
+                    <label for="assignmentDeadline" class="form-label fw-medium">
+                        <i class="bi bi-calendar-date me-1 text-primary"></i>Hạn nộp
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-clock text-primary"></i>
+                        </span>
                         <input
-                            type="text"
-                            class="form-control"
+                            type="date"
+                            class="form-control form-control-lg border-primary border-end-1"
                             id="assignmentDeadline"
-                            placeholder="VD: 31/12/2024"
                             [(ngModel)]="newAssignment.deadline"
                             name="deadline"
-                            pattern="\d{1,2}/\d{1,2}/\d{4}"
                             required
                         />
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" (click)="closeAssignmentModal()">Hủy</button>
-                        <button type="submit" class="btn btn-success">Thêm bài tập</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal backdrop -->
-<div
-    class="modal-backdrop fade show"
-    *ngIf="showAnnouncementModal || showDocumentModal || showAssignmentModal || showAnnouncementDetailModal"
-    (click)="
-        showAnnouncementModal = false;
-        showDocumentModal = false;
-        showAssignmentModal = false;
-        showAnnouncementDetailModal = false
-    "
-></div>
-
-<!-- Delete Confirmation Modal -->
-<div
-    class="modal fade"
-    id="deleteAssignmentModal"
-    tabindex="-1"
-    aria-labelledby="deleteAssignmentModalLabel"
-    aria-hidden="true"
->
-    <div class="modal-dialog modal-dialog-centered">
-        <!-- Thêm modal-dialog-centered -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteAssignmentModalLabel">Xác nhận xóa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
-                    <p class="mb-3">Bạn có chắc chắn muốn xóa bài tập này?</p>
-                    <p class="fw-bold text-danger">{{ assignmentToDelete?.title }}?</p>
-                    <p class="text-muted small">Hành động này không thể hoàn tác.</p>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" (click)="deleteAssignment()">
-                    <i class="bi bi-trash me-2"></i>Xóa
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div
-    class="modal fade"
-    id="deleteDocumentModal"
-    tabindex="-1"
-    aria-labelledby="deleteDocumentModalLabel"
-    aria-hidden="true"
->
-    <div class="modal-dialog modal-dialog-centered">
-        <!-- Thêm modal-dialog-centered -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteDocumentModalLabel">Xác nhận xóa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
-                    <p class="mb-3">Bạn có chắc chắn muốn xóa tài liệu này?</p>
-                    <p class="fw-bold text-danger">{{ documentToDelete?.title }}?</p>
-                    <p class="text-muted small">Hành động này không thể hoàn tác.</p>
+                <div class="modal-footer bg-light">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary rounded-2 px-4"
+                        (click)="modal.dismiss('cancel')"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="submit"
+                        class="btn btn-success rounded-2 px-4"
+                        [disabled]="disableCreateAssignmentButton()"
+                    >
+                        <i class="bi bi-check-circle me-2"></i>Thêm bài tập
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" (click)="deleteAssignment()">
-                    <i class="bi bi-trash me-2"></i>Xóa
-                </button>
-            </div>
+            </form>
         </div>
     </div>
-</div>
+</ng-template>
+
+<!-- Delete Confirmation Modal - Improved -->
+<ng-template #deleteAssignmentModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-danger px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-exclamation-triangle me-2"></i>Xác nhận xóa
+            </h5>
+            <button
+                type="button"
+                class="btn-close btn-close-white"
+                (click)="modal.dismiss('cancel')"
+                aria-label="Close"
+            ></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+            <i class="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+            <h5 class="fw-bold mb-3">Bạn có chắc chắn muốn xóa bài tập này?</h5>
+            <p class="fs-5 text-danger fw-medium mb-4">{{ assignmentToDelete?.title }}</p>
+            <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Hủy
+            </button>
+            <button type="button" class="btn btn-danger rounded-2 px-4" (click)="deleteAssignment()">
+                <i class="bi bi-trash me-2"></i>Xóa
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Delete Document Modal - Improved -->
+<ng-template #deleteDocumentModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-danger px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-exclamation-triangle me-2"></i>Xác nhận xóa
+            </h5>
+            <button
+                type="button"
+                class="btn-close btn-close-white"
+                (click)="modal.dismiss('cancel')"
+                aria-label="Close"
+            ></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+            <i class="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+            <h5 class="fw-bold mb-3">Bạn có chắc chắn muốn xóa tài liệu này?</h5>
+            <p class="fs-5 text-danger fw-medium mb-4">{{ documentToDelete?.title }}</p>
+            <p class="text-muted small"><i class="bi bi-info-circle me-1"></i>Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Hủy
+            </button>
+            <button type="button" class="btn btn-danger rounded-2 px-4" (click)="deleteDocument()">
+                <i class="bi bi-trash me-2"></i>Xóa
+            </button>
+        </div>
+    </div>
+</ng-template>

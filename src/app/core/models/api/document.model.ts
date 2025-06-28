@@ -9,7 +9,6 @@ interface DocumentResponse {
     title: string;
     content: string;
     uploadAt: Date;
-    updatedAt: Date;
 
     fileId: string;
     fileName: string;

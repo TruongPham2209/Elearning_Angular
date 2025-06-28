@@ -1,137 +1,72 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-
-interface Announcement {
-    id: string;
-    title: string;
-    content: string;
-    createdAt: Date;
-}
-
-interface Document {
-    id: string;
-    lessionId: string;
-    title: string;
-    content: string;
-    createdAt: Date;
-    fileId: string;
-    fileName: string;
-}
-
-interface Assignment {
-    id: string;
-    lessionId: string;
-    title: string;
-    content: string;
-    deadline: Date;
-}
-
-interface Lession {
-    id: string;
-    name: string;
-    documents: Document[];
-    assignments: Assignment[];
-}
-
-interface CreateAnnouncementDto {
-    title: string;
-    content: string;
-}
-
-interface CreateDocumentDto {
-    lessionId: string;
-    title: string;
-    content: string;
-    file: File | null;
-}
-
-interface CreateAssignmentDto {
-    lessionId: string;
-    title: string;
-    content: string;
-    deadline: string;
-}
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { AnnouncementRequest, AnnouncementResponse } from '../../../core/models/api/announcement.model';
+import { AssignmentRequest, AssignmentResponse } from '../../../core/models/api/assignment.model';
+import { DocumentRequest, DocumentResponse } from '../../../core/models/api/document.model';
+import { LessionResponse } from '../../../core/models/api/lession.model';
+import { mockAnnouncements, mockLessions } from '../../../core/utils/mockdata.util';
 
 @Component({
     selector: 'lecturer-class-page',
-    imports: [CommonModule, RouterModule, FormsModule],
+    imports: [CommonModule, RouterModule, FormsModule, NgbModule],
     templateUrl: './class.component.html',
     styleUrl: './class.component.scss',
 })
 export class LecturerClassPage implements OnInit {
-    lessions: Lession[] = [
-        {
-            id: '1',
-            name: 'Buổi học 1: Giới thiệu khóa học',
-            documents: [
-                {
-                    id: '1',
-                    lessionId: '1',
-                    title: 'Bài giảng tuần 1',
-                    content: 'Nội dung giới thiệu về khóa học và mục tiêu học tập',
-                    createdAt: new Date('2024-01-15'),
-                    fileId: 'file1',
-                    fileName: 'bai-giang-tuan-1.pdf',
-                },
-            ],
-            assignments: [
-                {
-                    id: '1',
-                    lessionId: '1',
-                    title: 'Bài tập về nhà tuần 1',
-                    content: 'Hoàn thành bài tập trong sách giáo khoa',
-                    deadline: new Date('2024-12-30'),
-                },
-            ],
-        },
-        {
-            id: '2',
-            name: 'Buổi học 2: Lý thuyết cơ bản',
-            documents: [],
-            assignments: [],
-        },
-    ];
+    createAssignmentModalRef: any;
+    createDocumentModalRef: any;
+    createAnnouncementModalRef: any;
 
-    announcements: Announcement[] = [
-        {
-            id: '1',
-            title: 'Thông báo quan trọng',
-            content: 'Lớp học sẽ chuyển sang hình thức online từ tuần tới do tình hình thời tiết.',
-            createdAt: new Date('2024-01-10'),
-        },
-    ];
+    deleteAssignmentModalRef: any;
+    deleteDocumentModalRef: any;
+    viewAnnouncementDetailModalRef: any;
+
+    lessions: LessionResponse[] = mockLessions;
+    announcements: AnnouncementResponse[] = mockAnnouncements;
+    selectedFile: File | null = null;
 
     // Modal states
     showAnnouncementModal = false;
     showDocumentModal = false;
     showAssignmentModal = false;
     showAnnouncementDetailModal = false;
-    assignmentToDelete: Assignment | null = null;
-    documentToDelete: Document | null = null;
+    assignmentToDelete: AssignmentResponse | null = null;
+    documentToDelete: DocumentResponse | null = null;
 
     // Form data
-    newAnnouncement: CreateAnnouncementDto = { title: '', content: '' };
-    newDocument: CreateDocumentDto = { lessionId: '', title: '', content: '', file: null };
-    newAssignment: CreateAssignmentDto = { lessionId: '', title: '', content: '', deadline: '' };
-    selectedAnnouncement: Announcement | null = null;
+    newAnnouncement: AnnouncementRequest = { title: '', content: '', classId: '' };
+    newDocument: DocumentRequest = { lessionId: '', title: '', content: '' };
+    newAssignment: AssignmentRequest = { lessionId: '', title: '', content: '', deadline: new Date() };
+    selectedAnnouncement: AnnouncementResponse | null = null;
 
     // Dropdown states
     expandedLessions: Set<string> = new Set();
     showAnnouncementDropdown = false;
 
-    constructor(private router: Router) {}
+    constructor(
+        private router: Router,
+        private modalService: NgbModal,
+    ) {}
 
-    ngOnInit() {}
+    ngOnInit() {
+        // Load query parameters classId
+        const queryParams = this.router.routerState.snapshot.root.queryParams;
+        console.log('Query Params:', queryParams);
+
+        if (queryParams['id']) {
+            const classId = queryParams['id'];
+            console.log('Loaded class with ID:', classId);
+        }
+    }
 
     // Lession management
     toggleLession(lessionId: string) {
-        if (this.expandedLessions.has(lessionId)) {
-            this.expandedLessions.delete(lessionId);
-        } else {
-            this.expandedLessions.add(lessionId);
-        }
+        this.expandedLessions.has(lessionId)
+            ? this.expandedLessions.delete(lessionId)
+            : this.expandedLessions.add(lessionId);
     }
 
     isLessionExpanded(lessionId: string): boolean {
@@ -143,9 +78,8 @@ export class LecturerClassPage implements OnInit {
         this.showAnnouncementDropdown = !this.showAnnouncementDropdown;
     }
 
-    openAnnouncementModal() {
-        this.showAnnouncementModal = true;
-        this.newAnnouncement = { title: '', content: '' };
+    openAnnouncementModal(content: TemplateRef<any>) {
+        this.createAnnouncementModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
     closeAnnouncementModal() {
@@ -154,94 +88,63 @@ export class LecturerClassPage implements OnInit {
 
     createAnnouncement() {
         if (this.newAnnouncement.title && this.newAnnouncement.content) {
-            const announcement: Announcement = {
-                id: Date.now().toString(),
-                title: this.newAnnouncement.title,
-                content: this.newAnnouncement.content,
-                createdAt: new Date(),
-            };
-            this.announcements.unshift(announcement);
-            this.closeAnnouncementModal();
+            // const announcement: Announcement = {
+            //     id: Date.now().toString(),
+            //     title: this.newAnnouncement.title,
+            //     content: this.newAnnouncement.content,
+            //     createdAt: new Date(),
+            // };
+            // this.announcements.unshift(announcement);
+            this.createAnnouncementModalRef?.close();
+            this.newAnnouncement = { classId: this.newAnnouncement.classId, title: '', content: '' };
         }
     }
 
-    viewAnnouncementDetail(announcement: Announcement) {
+    viewAnnouncementDetail(announcement: AnnouncementResponse, content: TemplateRef<any>) {
         this.selectedAnnouncement = announcement;
-        this.showAnnouncementDetailModal = true;
-    }
-
-    closeAnnouncementDetailModal() {
-        this.showAnnouncementDetailModal = false;
-        this.selectedAnnouncement = null;
+        this.viewAnnouncementDetailModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
     // Document management
-    openDocumentModal(lessionId: string) {
-        this.newDocument = { lessionId, title: '', content: '', file: null };
-        this.showDocumentModal = true;
-    }
-
-    closeDocumentModal() {
-        this.showDocumentModal = false;
+    openDocumentModal(lessionId: string, content: TemplateRef<any>) {
+        this.newDocument = { lessionId, title: '', content: '' };
+        this.createDocumentModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
     onFileSelect(event: any) {
         const file = event.target.files[0];
-        this.newDocument.file = file;
+        this.selectedFile = file;
+    }
+
+    closeDocumentModal() {
+        this.createDocumentModalRef?.close();
+        this.selectedFile = null;
+        this.newDocument = { lessionId: '', title: '', content: '' };
     }
 
     createDocument() {
-        if (this.newDocument.title && this.newDocument.content && this.newDocument.file) {
-            const document: Document = {
-                id: Date.now().toString(),
-                lessionId: this.newDocument.lessionId,
-                title: this.newDocument.title,
-                content: this.newDocument.content,
-                createdAt: new Date(),
-                fileId: 'file' + Date.now(),
-                fileName: this.newDocument.file.name,
-            };
-
-            const lession = this.lessions.find((l) => l.id === this.newDocument.lessionId);
-            if (lession) {
-                lession.documents.push(document);
-            }
-
+        if (this.newDocument.title && this.newDocument.content && this.selectedFile) {
+            console.log('Creating document:', this.newDocument);
             this.closeDocumentModal();
         }
     }
 
     // Assignment management
-    openAssignmentModal(lessionId: string) {
-        this.newAssignment = { lessionId, title: '', content: '', deadline: '' };
-        this.showAssignmentModal = true;
+    openAssignmentModal(lessionId: string, content: TemplateRef<any>) {
+        this.newAssignment = { lessionId, title: '', content: '', deadline: new Date() };
+        this.createAssignmentModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
     closeAssignmentModal() {
-        this.showAssignmentModal = false;
+        this.createAssignmentModalRef?.close();
+        this.newAssignment = { lessionId: '', title: '', content: '', deadline: new Date() };
+        this.selectedFile = null;
     }
 
     createAssignment() {
         if (this.newAssignment.title && this.newAssignment.content && this.newAssignment.deadline) {
-            const deadlineDate = this.parseDate(this.newAssignment.deadline);
-            if (deadlineDate && deadlineDate > new Date()) {
-                const assignment: Assignment = {
-                    id: Date.now().toString(),
-                    lessionId: this.newAssignment.lessionId,
-                    title: this.newAssignment.title,
-                    content: this.newAssignment.content,
-                    deadline: deadlineDate,
-                };
-
-                const lession = this.lessions.find((l) => l.id === this.newAssignment.lessionId);
-                if (lession) {
-                    lession.assignments.push(assignment);
-                }
-
-                this.closeAssignmentModal();
-            } else {
-                alert('Deadline phải là ngày trong tương lai!');
-            }
+            console.log('Creating assignment:', this.newAssignment);
+            this.closeAssignmentModal();
         }
     }
 
@@ -249,61 +152,49 @@ export class LecturerClassPage implements OnInit {
         this.router.navigate(['/lecturer/submissions'], { queryParams: { lessionId } });
     }
 
-    // Utility methods
-    parseDate(dateString: string): Date | null {
-        const parts = dateString.split('/');
-        if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-            const year = parseInt(parts[2], 10);
-            return new Date(year, month, day);
-        }
-        return null;
-    }
-
-    formatDate(date: Date): string {
-        return date.toLocaleDateString('vi-VN');
-    }
-
-    confirmDeleteAssignment(assignment: Assignment): void {
+    confirmDeleteAssignment(assignment: AssignmentResponse, content: TemplateRef<any>): void {
         this.assignmentToDelete = assignment;
-        // Sử dụng Bootstrap modal
-        const modal = new (window as any).bootstrap.Modal(document.getElementById('deleteAssignmentModal'));
-        modal.show();
+        this.deleteAssignmentModalRef = this.modalService.open(content, { centered: true });
     }
 
     deleteAssignment(): void {
         if (this.assignmentToDelete) {
-            // Đóng modal
-            const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('deleteAssignmentModal'));
-            modal.hide();
+            this.deleteAssignmentModalRef?.close();
 
-            // Reset
             this.assignmentToDelete = null;
-
-            // Có thể thêm toast notification ở đây
             console.log('Đã xóa bài tập thành công');
         }
     }
 
-    confirmDeleteDocument(documentToDelete: Document): void {
+    confirmDeleteDocument(documentToDelete: DocumentResponse, content: TemplateRef<any>): void {
         this.documentToDelete = documentToDelete;
-        // Sử dụng Bootstrap modal
-        const modal = new (window as any).bootstrap.Modal(document.getElementById('deleteDocumentModal'));
-        modal.show();
+        this.deleteDocumentModalRef = this.modalService.open(content, { centered: true });
     }
 
     deleteDocument(): void {
         if (this.documentToDelete) {
-            // Đóng modal
-            const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('deleteDocumentModal'));
-            modal.hide();
+            this.deleteDocumentModalRef?.close();
 
-            // Reset
             this.assignmentToDelete = null;
-
-            // Có thể thêm toast notification ở đây
             console.log('Đã xóa tài liệu thành công');
         }
+    }
+
+    // Disable states
+    disableCreateAnnouncementButton(): boolean {
+        return !this.newAnnouncement.title || !this.newAnnouncement.content;
+    }
+
+    disableCreateDocumentButton(): boolean {
+        return !this.newDocument.title || !this.newDocument.content || !this.selectedFile;
+    }
+
+    disableCreateAssignmentButton(): boolean {
+        return (
+            !this.newAssignment.title ||
+            !this.newAssignment.content ||
+            !this.newAssignment.deadline ||
+            this.newAssignment.deadline < new Date()
+        );
     }
 }
