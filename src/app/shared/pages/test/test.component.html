@@ -1,17 +1,23 @@
-<ul>
-    <li *ngFor="let item of pageData?.content">
-        {{ item }}
-    </li>
-</ul>
+<div *ngIf="pageData.content">
+    <!-- Hiển thị danh sách -->
+    <ul>
+        <li *ngFor="let item of pageData.content">{{ item }}</li>
+    </ul>
 
-<pagination-controls
-    (pageChange)="getPage($event)"
-    [totalItems]="pageData.totalPages * pageData.pageSize"
-    [itemsPerPage]="pageData.pageSize"
-    [maxSize]="5"
-    [directionLinks]="true"
-    previousLabel="Trước"
-    nextLabel="Sau"
-    [autoHide]="true"
->
-</pagination-controls>
+    <!-- Hiển thị thông tin phân trang -->
+    <div class="pagination-info">
+        <p>Trang hiện tại: {{ pageData.currentPage + 1 }}</p>
+        <p *ngIf="getNextPages().length > 0">Các trang tiếp theo: {{ getNextPages().join(', ') }}</p>
+        <p>Trang cuối: {{ getLastPage() }}</p>
+    </div>
+
+    <!-- Phân trang với MatPaginator, ẩn Items per page -->
+    <mat-paginator
+        [length]="pageData.totalPages * (pageData.pageSize || 0)"
+        [pageSize]="pageData.pageSize"
+        [pageIndex]="pageData.currentPage"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true"
+        [hidePageSize]="true"
+    ></mat-paginator>
+</div>
