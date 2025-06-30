@@ -1,21 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Editor, NgxEditorComponent, NgxEditorMenuComponent, Toolbar } from 'ngx-editor';
 import { AnnouncementRequest, AnnouncementResponse } from '../../../core/models/api/announcement.model';
 import { AssignmentRequest, AssignmentResponse } from '../../../core/models/api/assignment.model';
 import { DocumentRequest, DocumentResponse } from '../../../core/models/api/document.model';
 import { LessionResponse } from '../../../core/models/api/lession.model';
 import { mockAnnouncements, mockLessions } from '../../../core/utils/mockdata.util';
-
+import { toolbarOptions } from '../../../core/configs/editor.config';
 @Component({
     selector: 'lecturer-class-page',
-    imports: [CommonModule, RouterModule, FormsModule, NgbModule],
+    imports: [CommonModule, RouterModule, FormsModule, NgbModule, NgxEditorComponent, NgxEditorMenuComponent],
     templateUrl: './class.component.html',
     styleUrl: './class.component.scss',
 })
-export class LecturerClassPage implements OnInit {
+export class LecturerClassPage implements OnInit, OnDestroy {
+    editor!: Editor;
+    toolBar: Toolbar = toolbarOptions;
+
     createAssignmentModalRef: any;
     createDocumentModalRef: any;
     createAnnouncementModalRef: any;
@@ -60,6 +64,18 @@ export class LecturerClassPage implements OnInit {
             const classId = queryParams['id'];
             console.log('Loaded class with ID:', classId);
         }
+
+        if (!this.editor) {
+            this.editor = new Editor({
+                history: true,
+                keyboardShortcuts: true,
+                inputRules: true,
+            });
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.editor?.destroy();
     }
 
     goToManageStudent() {
@@ -190,8 +206,8 @@ export class LecturerClassPage implements OnInit {
 
     disableCreateAssignmentButton(): boolean {
         return (
-            !this.newAssignment.title ||
-            !this.newAssignment.content ||
+            this.newAssignment.title.trim() === '' ||
+            this.newAssignment.content.trim() === '' ||
             !this.newAssignment.deadline ||
             this.newAssignment.deadline < new Date()
         );

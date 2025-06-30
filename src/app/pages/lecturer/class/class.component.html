@@ -396,25 +396,6 @@
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label for="assignmentContent" class="form-label fw-medium">
-                        <i class="bi bi-text-paragraph me-1 text-primary"></i>Nội dung
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-primary align-items-start">
-                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
-                        </span>
-                        <textarea
-                            class="form-control form-control-lg border-primary border-end-1"
-                            id="assignmentContent"
-                            rows="4"
-                            [(ngModel)]="newAssignment.content"
-                            name="content"
-                            required
-                            placeholder="Nhập nội dung bài tập"
-                        ></textarea>
-                    </div>
-                </div>
-                <div class="mb-4">
                     <label for="assignmentDeadline" class="form-label fw-medium">
                         <i class="bi bi-calendar-date me-1 text-primary"></i>Hạn nộp
                     </label>
@@ -430,6 +411,27 @@
                             name="deadline"
                             required
                         />
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="assignmentContent" class="form-label fw-medium">
+                        <i class="bi bi-text-paragraph me-1 text-primary"></i>Nội dung
+                    </label>
+                    <div class="editor-container">
+                        <div
+                            class="NgxEditor__Wrapper form-control form-control-lg border-primary border-end-1"
+                            style="height: 300px"
+                        >
+                            <ngx-editor-menu [editor]="editor" [toolbar]="toolBar"> </ngx-editor-menu>
+                            <ngx-editor
+                                [editor]="editor"
+                                [placeholder]="'Enter content...'"
+                                id="assignmentContent"
+                                rows="4"
+                                [(ngModel)]="newAssignment.content"
+                                name="content"
+                            ></ngx-editor>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">

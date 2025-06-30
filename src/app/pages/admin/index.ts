@@ -1,4 +1,4 @@
-import { AdminManageStudentPage } from './class-student/class-student.component';
+import { ManageStudentPage } from './../../shared/pages/student/student.component';
 import { AdminSemesterPage } from './semester/semester.component';
 import { AdminClassPage } from './class/class.component';
 import { AdminCoursePage } from './course/course.component';
@@ -12,5 +12,5 @@ export {
     AdminNotificationPage as Notification,
     AdminUserPage as User,
     AdminSemesterPage as Semester,
-    AdminManageStudentPage as ManageStudent,
+    ManageStudentPage as ManageStudent,
 };
