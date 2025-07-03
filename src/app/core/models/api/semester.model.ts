@@ -3,8 +3,8 @@ import { ClassResponse } from './class.model';
 interface SemesterForm {
     id: string;
     name: string;
-    startDate: string;
-    endDate: string;
+    startDate: Date;
+    endDate: Date;
 }
 
 interface SemesterResponse {

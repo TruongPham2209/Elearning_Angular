@@ -12,4 +12,10 @@ interface CourseResponse {
     sessions: number;
 }
 
-export type { CourseResponse, CourseForm };
+interface CourseFilter {
+    name: string;
+    page: number;
+    pageSize: number;
+}
+
+export type { CourseResponse, CourseForm, CourseFilter };

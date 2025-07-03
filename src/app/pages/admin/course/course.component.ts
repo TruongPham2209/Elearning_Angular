@@ -2,7 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CourseForm, CourseResponse } from '../../../core/models/api/course.model';
+import { CourseFilter, CourseForm, CourseResponse } from '../../../core/models/api/course.model';
+import { CourseService } from '../../../core/services/api/course.service';
+import { Page } from '../../../core/models/types/page.interface';
+import { ToastService } from '../../../core/services/ui/toast.service';
 
 @Component({
     selector: 'admin-course-page',
@@ -12,11 +15,22 @@ import { CourseForm, CourseResponse } from '../../../core/models/api/course.mode
 })
 export class AdminCoursePage implements OnInit {
     getEndIndex() {
-        const startIndex = this.paginationInfo.currentPage * this.paginationInfo.pageSize;
-        return Math.min(startIndex + this.paginationInfo.pageSize, this.paginationInfo.totalItems);
+        const startIndex = this.courses.currentPage * this.courses.pageSize;
+        return Math.min(startIndex + this.courses.pageSize, this.courses.pageSize * this.courses.totalPages);
     }
 
-    courses: CourseResponse[] = [];
+    courses: Page<CourseResponse> = {
+        content: [],
+        totalPages: 0,
+        pageSize: 20,
+        currentPage: 0,
+    };
+
+    filter: CourseFilter = {
+        name: '',
+        page: 0,
+        pageSize: 20,
+    };
 
     // Current state
     isLoading: boolean = false;
@@ -33,94 +47,44 @@ export class AdminCoursePage implements OnInit {
         shortDescription: '',
     };
 
-    // Pagination
-    paginationInfo: any = {
-        currentPage: 0,
-        totalPages: 0,
-        totalItems: 0,
-        pageSize: 20,
-    };
-
-    constructor(private router: Router) {}
+    constructor(
+        private readonly router: Router,
+        private readonly courseService: CourseService,
+        private toastService: ToastService,
+    ) {}
 
     ngOnInit() {
         this.loadCourses();
     }
 
-    // Generate sample courses for demonstration
-    generateSampleCourses(): CourseResponse[] {
-        const courseNames = [
-            'Lập trình Java nâng cao',
-            'Cơ sở dữ liệu Oracle',
-            'Phát triển ứng dụng Web',
-            'Kỹ thuật phần mềm',
-            'Trí tuệ nhân tạo',
-            'Machine Learning cơ bản',
-            'Phân tích và thiết kế hệ thống',
-            'Lập trình Python',
-            'Quản lý dự án IT',
-            'Bảo mật thông tin',
-            'Mạng máy tính',
-            'Hệ điều hành Linux',
-            'Frontend Development',
-            'Backend Development',
-            'Mobile App Development',
-        ];
-
-        const sampleCourses: CourseResponse[] = [];
-
-        for (let i = 0; i < 150; i++) {
-            sampleCourses.push({
-                id: `course_${i + 1}`,
-                name:
-                    courseNames[i % courseNames.length] +
-                    (i >= courseNames.length ? ` (Lớp ${Math.floor(i / courseNames.length) + 1})` : ''),
-                sessions: Math.floor(Math.random() * 20) + 1,
-                shortDescription: `Mô tả ngắn về khóa học ${i + 1}. Đây là một khóa học thú vị và bổ ích.`,
-            });
-        }
-
-        return sampleCourses;
-    }
-
     loadCourses(page: number = 0) {
         this.isLoading = true;
 
-        // Simulate API call
-        setTimeout(() => {
-            const allCourses = this.generateSampleCourses();
-
-            const startIndex = page * this.paginationInfo.pageSize;
-            const endIndex = startIndex + this.paginationInfo.pageSize;
-
-            this.courses = allCourses.slice(startIndex, endIndex);
-
-            this.paginationInfo = {
-                currentPage: page,
-                totalPages: Math.ceil(allCourses.length / this.paginationInfo.pageSize),
-                totalItems: allCourses.length,
-                pageSize: this.paginationInfo.pageSize,
-            };
-
-            this.isLoading = false;
-        }, 800);
-    }
-
-    onSemesterChange() {
-        this.paginationInfo.currentPage = 0;
-        this.loadCourses(0);
+        this.courseService.getCourses(this.filter).subscribe({
+            next: (courses) => {
+                this.courses = courses;
+                this.filter.page = this.courses.currentPage;
+                this.filter.pageSize = this.courses.pageSize;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading courses:', error);
+                this.toastService.show('Lỗi khi tải danh sách khóa học', 'error');
+                this.isLoading = false;
+            },
+        });
     }
 
     onPageChange(page: number) {
-        if (page >= 0 && page < this.paginationInfo.totalPages) {
+        if (page >= 0 && page < this.courses.totalPages && !this.isLoading) {
             this.loadCourses(page);
         }
     }
 
     getDisplayPages(): number[] {
         const pages: number[] = [];
-        const current = this.paginationInfo.currentPage;
-        const total = this.paginationInfo.totalPages;
+        const current = this.courses.currentPage;
+        const total = this.courses.totalPages;
 
         if (total <= 7) {
             for (let i = 0; i < total; i++) {
@@ -198,28 +162,37 @@ export class AdminCoursePage implements OnInit {
     // CRUD operations
     saveCourse() {
         // Validation
-        if (!this.currentCourseForm.name.trim()) {
-            alert('Vui lòng nhập tên khóa học!');
-            return;
-        }
-
-        if (this.currentCourseForm.sessions < 1 || this.currentCourseForm.sessions > 20) {
-            alert('Số buổi học phải từ 1 đến 20!');
+        if (this.disableButton()) {
+            this.toastService.show('Vui lòng điền đầy đủ thông tin khóa học', 'warning');
             return;
         }
 
         // Simulate API call
         this.isLoading = true;
-        setTimeout(() => {
-            if (this.isEditMode) {
-                console.log('Updating course:', this.currentCourseForm);
-            } else {
-                console.log('Creating course:', this.currentCourseForm);
-            }
-
-            this.closeModal();
-            this.loadCourses(this.paginationInfo.currentPage);
-        }, 500);
+        this.courseService.save(this.currentCourseForm).subscribe({
+            next: (course) => {
+                this.isLoading = false;
+                this.toastService.show(
+                    this.isEditMode ? 'Cập nhật khóa học thành công' : 'Thêm khóa học thành công',
+                    'success',
+                );
+                if (!this.isEditMode) {
+                    this.courses.content.unshift(course);
+                } else {
+                    const index = this.courses.content.findIndex((c) => c.id === course.id);
+                    if (index !== -1) {
+                        this.courses.content[index] = course;
+                    }
+                }
+                this.closeModal();
+            },
+            error: (error) => {
+                console.error('Error saving course:', error);
+                this.isLoading = false;
+                this.toastService.show('Lỗi khi lưu khóa học', 'error');
+                this.closeModal();
+            },
+        });
     }
 
     deleteCourse() {
@@ -227,11 +200,20 @@ export class AdminCoursePage implements OnInit {
 
         // Simulate API call
         this.isLoading = true;
-        setTimeout(() => {
-            console.log('Deleting course:', this.courseToDelete?.id);
-            this.closeDeleteModal();
-            this.loadCourses(this.paginationInfo.currentPage);
-        }, 500);
+        this.courseService.deleteById(this.courseToDelete.id).subscribe({
+            next: () => {
+                this.toastService.show('Xóa khóa học thành công', 'success');
+                this.courses.content = this.courses.content.filter((c) => c.id !== this.courseToDelete?.id);
+                this.closeDeleteModal();
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error deleting course:', error);
+                this.toastService.show('Lỗi khi xóa khóa học', 'error');
+                this.closeDeleteModal();
+                this.isLoading = false;
+            },
+        });
     }
 
     // Navigation

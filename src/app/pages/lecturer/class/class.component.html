@@ -16,6 +16,13 @@
                 </div>
                 <div class="card-body">
                     <div class="accordion" id="lessionsAccordion">
+                        <!-- Hiệu ứng loading ở đây -->
+                        <div *ngIf="isLoadingLessions" class="text-center mb-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+
                         <div *ngFor="let lession of lessions" class="accordion-item mb-3">
                             <h2 class="accordion-header">
                                 <button
@@ -29,6 +36,13 @@
                             </h2>
                             <div class="accordion-collapse collapse" [class.show]="isLessionExpanded(lession.id)">
                                 <div class="accordion-body">
+                                    <!-- Hiệu ứng loading ở đây -->
+                                    <div *ngIf="loadingResources.has(lession.id)" class="text-center mb-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+
                                     <!-- Tài liệu -->
                                     <div class="mb-4">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -41,7 +55,10 @@
                                             </button>
                                         </div>
 
-                                        <div *ngIf="lession.documents?.length === 0" class="text-muted">
+                                        <div
+                                            *ngIf="lession.documents?.length === 0 && !loadingResources.has(lession.id)"
+                                            class="text-muted"
+                                        >
                                             Chưa có tài liệu nào
                                         </div>
 
@@ -85,7 +102,12 @@
                                             </button>
                                         </div>
 
-                                        <div *ngIf="lession.assignments?.length === 0" class="text-muted">
+                                        <div
+                                            *ngIf="
+                                                lession.assignments?.length === 0 && !loadingResources.has(lession.id)
+                                            "
+                                            class="text-muted"
+                                        >
                                             Chưa có bài tập nào
                                         </div>
 
@@ -147,7 +169,16 @@
                         </button>
                     </div>
 
-                    <div *ngIf="announcements.length === 0" class="text-muted">Chưa có thông báo nào</div>
+                    <div *ngIf="announcements.length === 0 && !isLoadingAnnouncements" class="text-muted">
+                        Chưa có thông báo nào
+                    </div>
+
+                    <!-- Hiệu ưng loading ở đây -->
+                    <div *ngIf="isLoadingAnnouncements" class="text-center mb-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
 
                     <div *ngFor="let announcement of announcements" class="card mb-4" style="cursor: pointer">
                         <div class="card-body">
@@ -234,9 +265,15 @@
                     <button
                         type="submit"
                         class="btn btn-primary rounded-2 px-4"
-                        [disabled]="disableCreateAnnouncementButton()"
+                        [disabled]="disableCreateAnnouncementButton() || isCreatingAnnouncement"
                     >
-                        <i class="bi bi-send-check me-2"></i>Tạo thông báo
+                        <ng-container *ngIf="!isCreatingAnnouncement; else loadingTemplate">
+                            <i class="bi bi-send-check me-2"></i> Tạo thông báo
+                        </ng-container>
+                        <ng-template #loadingTemplate>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Đang tạo...
+                        </ng-template>
                     </button>
                 </div>
             </form>
@@ -357,9 +394,15 @@
                     <button
                         type="submit"
                         class="btn btn-primary rounded-2 px-4"
-                        [disabled]="disableCreateDocumentButton()"
+                        [disabled]="disableCreateDocumentButton() || isCreatingDocument"
                     >
-                        <i class="bi bi-save me-2"></i>Thêm tài liệu
+                        <ng-container *ngIf="!isCreatingDocument; else loadingTemplate">
+                            <i class="bi bi-check-circle me-2"></i> Thêm tài liệu
+                        </ng-container>
+                        <ng-template #loadingTemplate>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Đang thêm...
+                        </ng-template>
                     </button>
                 </div>
             </form>
@@ -445,9 +488,15 @@
                     <button
                         type="submit"
                         class="btn btn-success rounded-2 px-4"
-                        [disabled]="disableCreateAssignmentButton()"
+                        [disabled]="disableCreateAssignmentButton() || isCreatingAssignment"
                     >
-                        <i class="bi bi-check-circle me-2"></i>Thêm bài tập
+                        <ng-container *ngIf="!isCreatingAssignment; else loadingTemplate">
+                            <i class="bi bi-check-circle me-2"></i> Thêm bài tập
+                        </ng-container>
+                        <ng-template #loadingTemplate>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Đang thêm...
+                        </ng-template>
                     </button>
                 </div>
             </form>
@@ -479,8 +528,19 @@
             <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
                 Hủy
             </button>
-            <button type="button" class="btn btn-danger rounded-2 px-4" (click)="deleteAssignment()">
-                <i class="bi bi-trash me-2"></i>Xóa
+            <button
+                type="button"
+                class="btn btn-danger rounded-2 px-4"
+                (click)="deleteAssignment()"
+                [disabled]="isDeletingAssignment"
+            >
+                <ng-container *ngIf="!isDeletingAssignment; else loadingTemplate">
+                    <i class="bi bi-trash me-2"></i>Xóa
+                </ng-container>
+                <ng-template #loadingTemplate>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang xóa...
+                </ng-template>
             </button>
         </div>
     </div>
@@ -510,8 +570,19 @@
             <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
                 Hủy
             </button>
-            <button type="button" class="btn btn-danger rounded-2 px-4" (click)="deleteDocument()">
-                <i class="bi bi-trash me-2"></i>Xóa
+            <button
+                type="button"
+                class="btn btn-danger rounded-2 px-4"
+                (click)="deleteDocument()"
+                [disabled]="isDeletingDocument"
+            >
+                <ng-container *ngIf="!isDeletingDocument; else loadingTemplate">
+                    <i class="bi bi-trash me-2"></i>Xóa
+                </ng-container>
+                <ng-template #loadingTemplate>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang xóa...
+                </ng-template>
             </button>
         </div>
     </div>

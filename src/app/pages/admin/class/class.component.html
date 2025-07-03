@@ -7,7 +7,7 @@
         </div>
         <div class="col-md-4">
             <!-- Semester Selector -->
-            <select class="form-select">
+            <select class="form-select" [(ngModel)]="selectedSemesterId" (change)="onSemesterChange()">
                 <option value="" disabled>Chọn học kỳ</option>
                 <option *ngFor="let semester of semesters" [value]="semester.id">
                     {{ semester.name }}
@@ -23,6 +23,17 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
+                <!-- Loading Overlay -->
+                <div
+                    *ngIf="isLoading"
+                    class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75"
+                    style="z-index: 10"
+                >
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
@@ -197,18 +208,18 @@
 
                         <!-- Search Results Dropdown -->
                         <div
-                            *ngIf="filteredInstructors.length > 0"
+                            *ngIf="instructors.length > 0"
                             class="dropdown-menu show position-absolute w-100 mt-1"
                             style="max-height: 200px; overflow-y: auto; z-index: 1050"
                         >
                             <button
-                                *ngFor="let instructor of filteredInstructors"
+                                *ngFor="let instructor of instructors"
                                 type="button"
                                 class="dropdown-item"
                                 (click)="selectInstructor(instructor)"
                             >
                                 <div>
-                                    <strong>{{ instructor.fullName }}</strong>
+                                    <strong>{{ instructor.fullname }}</strong>
                                     <br />
                                     <small class="text-muted">{{ instructor.email }}</small>
                                 </div>
@@ -221,7 +232,7 @@
                         <div *ngIf="selectedInstructor; else noInstructorSelected">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h6 class="mb-1">{{ selectedInstructor.fullName }}</h6>
+                                    <h6 class="mb-1">{{ selectedInstructor.fullname }}</h6>
                                     <small class="text-muted">{{ selectedInstructor.email }}</small>
                                 </div>
                                 <button
@@ -266,7 +277,9 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Hủy</button>
             <button type="button" class="btn btn-primary" [disabled]="disableCreateButton()" (click)="createClass()">
-                <i class="bi bi-plus-circle me-2"></i>Tạo lớp
+                <i *ngIf="!isCreating" class="bi bi-plus-circle me-2"></i>
+                <i *ngIf="isCreating" class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i>
+                Tạo lớp
             </button>
         </div>
     </div>
@@ -292,8 +305,10 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Hủy</button>
-            <button type="button" class="btn btn-danger" (click)="deleteClass()">
-                <i class="bi bi-trash me-2"></i>Xóa
+            <button type="button" class="btn btn-danger" (click)="deleteClass()" [disabled]="isDeleting">
+                <i *ngIf="!isDeleting" class="bi bi-trash me-2"></i>
+                <i *ngIf="isDeleting" class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i>
+                Xóa
             </button>
         </div>
     </div>

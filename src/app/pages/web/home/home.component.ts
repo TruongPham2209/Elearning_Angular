@@ -20,12 +20,14 @@ export class WebHomePage implements OnInit {
         content: [],
         totalPages: 0,
         currentPage: 0,
+        pageSize: 10,
     };
 
     studentNotifications: Page<NotificationResponse> = {
         content: [],
         totalPages: 0,
         currentPage: 0,
+        pageSize: 10,
     };
 
     activeNotificationTab: NotificationType = NotificationType.SYSTEM;
@@ -146,6 +148,7 @@ export class WebHomePage implements OnInit {
                       ],
                 totalPages: 3,
                 currentPage: page,
+                pageSize: 10,
             };
 
             if (isSystem) {

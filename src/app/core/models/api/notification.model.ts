@@ -18,7 +18,7 @@ interface NotificationResponse {
 interface NotificationFilter {
     scope: NotificationType;
     page: number;
-    size: number;
+    pageSize: number;
 }
 
 export type { NotificationRequest, NotificationResponse, NotificationFilter };

@@ -23,7 +23,7 @@
                                 <div class="accordion-body">
                                     <!-- Tài liệu -->
                                     <div class="mb-4">
-                                        <div *ngIf="lession.documents.length === 0" class="text-muted">
+                                        <div *ngIf="lession.documents?.length === 0" class="text-muted">
                                             Chưa có tài liệu nào
                                         </div>
 
@@ -40,7 +40,8 @@
                                                             }}</a>
                                                         </p>
                                                         <small class="text-muted">
-                                                            Tạo ngày: {{ formatDate(document.createdAt) }}
+                                                            Tạo ngày:
+                                                            {{ document.uploadAt | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
                                                 </div>
@@ -50,7 +51,7 @@
 
                                     <!-- Bài tập -->
                                     <div class="mb-4">
-                                        <div *ngIf="lession.assignments.length === 0" class="text-muted">
+                                        <div *ngIf="lession.assignments?.length === 0" class="text-muted">
                                             Chưa có bài tập nào
                                         </div>
 
@@ -68,7 +69,7 @@
                                                             </a>
                                                         </h6>
                                                         <small class="text-muted">
-                                                            Hạn nộp: {{ formatDate(assignment.deadline) }}
+                                                            Hạn nộp: {{ assignment.deadline | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
                                                 </div>
@@ -97,9 +98,9 @@
                     </div>
                 </div>
                 <div class="card-body" [class.d-none]="!showAnnouncementDropdown">
-                    <div *ngIf="announcements.length === 0" class="text-muted">Chưa có thông báo nào</div>
+                    <div *ngIf="announcements.content.length === 0" class="text-muted">Chưa có thông báo nào</div>
 
-                    <div *ngFor="let announcement of announcements" class="card mb-2">
+                    <div *ngFor="let announcement of announcements.content" class="card mb-2">
                         <div class="card-body">
                             <h6 class="card-title">{{ announcement.title }}</h6>
                             <p class="card-text">
@@ -116,7 +117,7 @@
                                 </a>
                             </p>
                             <small class="text-muted">
-                                {{ formatDate(announcement.createdAt) }}
+                                {{ announcement.createdAt | date: 'dd/MM/yyyy' }}
                             </small>
                         </div>
                     </div>
@@ -143,7 +144,7 @@
                 <p>{{ selectedAnnouncement?.content }}</p>
                 <hr />
                 <small class="text-muted">
-                    Ngày tạo: {{ selectedAnnouncement ? formatDate(selectedAnnouncement.createdAt) : '' }}
+                    Ngày tạo: {{ selectedAnnouncement ? (selectedAnnouncement.createdAt | date: 'dd/MM/yyyy') : '' }}
                 </small>
             </div>
             <div class="modal-footer">

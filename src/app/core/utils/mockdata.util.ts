@@ -10,14 +10,14 @@ import { BannedCause } from '../models/enum/banned_cause.model';
 import { NotificationType } from '../models/enum/notification.model';
 
 export const mockUsers: UserResponse[] = [
-    { id: 'ins1', fullName: 'TS. Nguyễn Văn An', email: 'nva@university.edu.vn' },
-    { id: 'ins2', fullName: 'PGS. Trần Thị Bình', email: 'ttb@university.edu.vn' },
-    { id: 'ins3', fullName: 'GS. Lê Văn Cường', email: 'lvc@university.edu.vn' },
-    { id: 'ins4', fullName: 'TS. Phạm Thị Dung', email: 'ptd@university.edu.vn' },
-    { id: 'ins5', fullName: 'ThS. Hoàng Văn Em', email: 'hve@university.edu.vn' },
-    { id: 'ins6', fullName: 'TS. Đặng Thị Phương', email: 'dtp@university.edu.vn' },
-    { id: 'ins7', fullName: 'PGS. Vũ Văn Giang', email: 'vvg@university.edu.vn' },
-    { id: 'ins8', fullName: 'TS. Ngô Thị Hoa', email: 'nth@university.edu.vn' },
+    // { id: 'ins2', fullname: 'PGS. Trần Thị Bình', email: 'ttb@university.edu.vn' },
+    // { id: 'ins1', fullname: 'TS. Nguyễn Văn An', email: 'nva@university.edu.vn' },
+    // { id: 'ins3', fullname: 'GS. Lê Văn Cường', email: 'lvc@university.edu.vn' },
+    // { id: 'ins4', fullname: 'TS. Phạm Thị Dung', email: 'ptd@university.edu.vn' },
+    // { id: 'ins5', fullname: 'ThS. Hoàng Văn Em', email: 'hve@university.edu.vn' },
+    // { id: 'ins6', fullname: 'TS. Đặng Thị Phương', email: 'dtp@university.edu.vn' },
+    // { id: 'ins7', fullname: 'PGS. Vũ Văn Giang', email: 'vvg@university.edu.vn' },
+    // { id: 'ins8', fullname: 'TS. Ngô Thị Hoa', email: 'nth@university.edu.vn' },
 ];
 
 export const mockSemesters: SemesterResponse[] = [

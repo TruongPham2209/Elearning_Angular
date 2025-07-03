@@ -1,8 +1,14 @@
-import { NotificationUtil } from './../../../core/models/enum/notification.model';
-import { Component, OnInit, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Page } from '../../../core/models/types/page.interface';
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Editor, NgxEditorComponent, NgxEditorMenuComponent, Toolbar } from 'ngx-editor';
+import { toolbarOptions } from '../../../core/configs/editor.config';
+import {
+    NotificationFilter,
+    NotificationRequest,
+    NotificationResponse,
+} from '../../../core/models/api/notification.model';
 import {
     lecturerNotificationOption,
     NotificationOption,
@@ -10,36 +16,40 @@ import {
     studentNotificationOption,
     systemNotificationOption,
 } from '../../../core/models/enum/notification.model';
-import { NotificationFilter, NotificationResponse } from '../../../core/models/api/notification.model';
-import { mockNotifications } from '../../../core/utils/mockdata.util';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Page } from '../../../core/models/types/page.interface';
+import { NotificationService } from '../../../core/services/api/notification.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { NotificationUtil } from './../../../core/models/enum/notification.model';
 
 @Component({
     selector: 'admin-notification-page',
-    imports: [CommonModule, FormsModule, NgbModule],
+    imports: [CommonModule, FormsModule, NgbModule, NgxEditorComponent, NgxEditorMenuComponent],
     templateUrl: './notification.component.html',
     styleUrl: './notification.component.scss',
 })
-export class AdminNotificationPage implements OnInit {
+export class AdminNotificationPage implements OnInit, OnDestroy {
     createModalRef: any;
     deleteModalRef: any;
     detailModalRef: any;
 
     // Enums for template
     NotificationUtil = NotificationUtil;
+    editor!: Editor;
+    toolBar: Toolbar = toolbarOptions;
 
     // Data properties
     notifications: Page<NotificationResponse> = {
         content: [],
         totalPages: 0,
         currentPage: 0,
+        pageSize: 10,
     };
 
     // Filter and pagination
     filter: NotificationFilter = {
         scope: NotificationType.SYSTEM,
         page: 0,
-        size: 10,
+        pageSize: 10,
     };
 
     // Loading states
@@ -51,10 +61,10 @@ export class AdminNotificationPage implements OnInit {
     notificationToDelete: NotificationResponse | null = null;
 
     // Form data
-    newNotification = {
+    newNotification: NotificationRequest = {
         title: '',
-        type: NotificationType.SYSTEM,
-        detail: '',
+        receiverScope: NotificationType.SYSTEM,
+        content: '',
     };
 
     notificationTypes: NotificationOption[] = [
@@ -66,40 +76,45 @@ export class AdminNotificationPage implements OnInit {
     // Pagination helper
     pages: number[] = [];
 
-    // Mock data
-    mockNotifications: NotificationResponse[] = mockNotifications;
-
-    constructor(private modalService: NgbModal) {}
+    constructor(
+        private readonly modalService: NgbModal,
+        private readonly notificationService: NotificationService,
+        private readonly toastService: ToastService,
+    ) {}
 
     ngOnInit(): void {
         this.loadNotifications();
+        if (!this.editor) {
+            this.editor = new Editor({
+                history: true,
+                keyboardShortcuts: true,
+                inputRules: true,
+            });
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.editor?.destroy();
+        this.createModalRef?.close();
+        this.deleteModalRef?.close();
+        this.detailModalRef?.close();
     }
 
     // Load notifications with filter and pagination
     loadNotifications(): void {
         this.isLoading = true;
-
-        // Simulate API call
-        setTimeout(() => {
-            let filteredNotifications = this.mockNotifications;
-
-            // Apply type filter
-            filteredNotifications = this.mockNotifications.filter((n) => n.receiverScope === this.filter.scope);
-
-            // Apply pagination
-            const startIndex = this.filter.page * this.filter.size;
-            const endIndex = startIndex + this.filter.size;
-            const paginatedContent = filteredNotifications.slice(startIndex, endIndex);
-
-            this.notifications = {
-                content: paginatedContent,
-                totalPages: Math.ceil(filteredNotifications.length / this.filter.size),
-                currentPage: this.filter.page,
-            };
-
-            this.updatePagination();
-            this.isLoading = false;
-        }, 800);
+        this.notificationService.getAll(this.filter).subscribe({
+            next: (response) => {
+                this.notifications = response;
+                this.updatePagination();
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading notifications:', error);
+                this.toastService.show(error.message, 'error');
+                this.isLoading = false;
+            },
+        });
     }
 
     // Filter change handler
@@ -159,7 +174,6 @@ export class AdminNotificationPage implements OnInit {
     }
 
     openCreateNotificationModal(content: TemplateRef<any>): void {
-        // Open modal
         this.createModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
@@ -170,65 +184,64 @@ export class AdminNotificationPage implements OnInit {
 
     deleteNotification(): void {
         if (this.notificationToDelete) {
-            // Simulate API call
-            const index = this.mockNotifications.findIndex((n) => n.id === this.notificationToDelete!.id);
-            if (index !== -1) {
-                this.mockNotifications.splice(index, 1);
-            }
-
-            this.notificationToDelete = null;
-            this.loadNotifications();
-
-            // Close modal
-            const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-            modal?.hide();
+            this.notificationService.delete(this.notificationToDelete.id).subscribe({
+                next: () => {
+                    this.toastService.show('Thông báo đã được xóa thành công.', 'success');
+                    this.notifications.content = this.notifications.content.filter(
+                        (n) => n.id !== this.notificationToDelete?.id,
+                    );
+                    this.notificationToDelete = null;
+                    this.deleteModalRef?.close();
+                },
+                error: (error) => {
+                    console.error('Error deleting notification:', error);
+                    this.toastService.show(error.message, 'error');
+                    this.notificationToDelete = null;
+                    this.deleteModalRef?.close();
+                },
+            });
         }
     }
 
     // Create notification
     createNotification(): void {
-        if (!this.newNotification.title || !this.newNotification.detail) {
+        if (this.disableCreateButton()) {
             return;
         }
 
         this.isCreating = true;
 
         // Simulate API call
-        setTimeout(() => {
-            const newNotification: NotificationResponse = {
-                id: (this.mockNotifications.length + 1).toString(),
-                title: this.newNotification.title,
-                receiverScope: this.newNotification.type,
-                content: this.newNotification.detail,
-                createdAt: new Date(),
-                sender: 'Admin',
-            };
-
-            this.mockNotifications.unshift(newNotification);
-            this.loadNotifications();
-
-            // Reset form
-            this.newNotification = {
-                title: '',
-                type: NotificationType.SYSTEM,
-                detail: '',
-            };
-
-            this.isCreating = false;
-
-            // Close modal
-            if (this.createModalRef) {
-                this.createModalRef.close();
-            }
-        }, 1000);
+        this.notificationService.create(this.newNotification).subscribe({
+            next: (response) => {
+                this.toastService.show('Thông báo đã được tạo thành công.', 'success');
+                this.notifications.content.unshift(response); // Add to the beginning of the list
+                this.resetForm();
+            },
+            error: (error) => {
+                console.error('Error creating notification:', error);
+                this.toastService.show(error.message, 'error');
+                this.resetForm();
+            },
+        });
     }
 
     disableCreateButton(): boolean {
         return (
             this.isCreating ||
             this.newNotification.title.trim() === '' ||
-            this.newNotification.detail.trim() == '' ||
-            !this.newNotification.type
+            this.newNotification.content.trim() == '' ||
+            !this.newNotification.receiverScope
         );
+    }
+
+    private resetForm(): void {
+        this.newNotification = {
+            title: '',
+            receiverScope: NotificationType.SYSTEM,
+            content: '',
+        };
+        this.isCreating = false;
+        this.createModalRef?.close();
     }
 }

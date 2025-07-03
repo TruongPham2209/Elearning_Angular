@@ -216,7 +216,7 @@
                         <select
                             class="form-select form-select-lg border border-primary"
                             id="notificationType"
-                            [(ngModel)]="newNotification.type"
+                            [(ngModel)]="newNotification.receiverScope"
                             name="notificationType"
                             required
                         >
@@ -233,22 +233,26 @@
                         <i class="bi bi-text-paragraph me-1 text-primary"></i>
                         Nội dung chi tiết <span class="text-danger">*</span>
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-primary align-items-start">
-                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
-                        </span>
-                        <textarea
-                            class="form-control form-control-lg border-primary border-end-1"
-                            id="notificationDetail"
-                            [(ngModel)]="newNotification.detail"
-                            name="notificationDetail"
-                            required
-                            rows="4"
-                            placeholder="Nhập nội dung chi tiết của thông báo..."
-                        ></textarea>
-                    </div>
-                    <div class="form-text text-muted mt-2">
-                        <i class="bi bi-info-circle me-1 text-info"></i>Nội dung thông báo sẽ được hiển thị nguyên bản
+                    <div class="editor-container">
+                        <div
+                            class="NgxEditor__Wrapper form-control form-control-lg border-primary border-end-1"
+                            style="height: 300px; overflow: auto"
+                        >
+                            <ngx-editor-menu [editor]="editor" [toolbar]="toolBar"> </ngx-editor-menu>
+                            <ngx-editor
+                                [editor]="editor"
+                                placeholder="Nhập nội dung chi tiết của thông báo..."
+                                id="notificationDetail"
+                                rows="4"
+                                [(ngModel)]="newNotification.content"
+                                name="notificationDetail"
+                                style="height: 100%"
+                            ></ngx-editor>
+                        </div>
+                        <div class="form-text text-muted mt-2">
+                            <i class="bi bi-info-circle me-1 text-info"></i>Nội dung thông báo sẽ được hiển thị nguyên
+                            bản
+                        </div>
                     </div>
                 </div>
             </form>

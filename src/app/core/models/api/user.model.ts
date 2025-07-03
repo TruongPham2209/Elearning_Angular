@@ -1,5 +1,6 @@
+import { ManagerRole } from './../enum/role.model';
 interface UserRequest {
-    id: string;
+    role: 'LECTURER' | 'STUDENT';
     username: string;
     fullName: string;
     email: string;
@@ -8,9 +9,9 @@ interface UserRequest {
 interface UserResponse {
     id: string;
     username?: string;
-    fullName: string;
+    fullname: string;
     email: string;
-    role?: string;
+    role: ManagerRole;
 }
 
 interface UserChangePasswordRequest {
@@ -18,4 +19,11 @@ interface UserChangePasswordRequest {
     newPassword: string;
 }
 
-export type { UserRequest, UserResponse, UserChangePasswordRequest };
+interface UserFilter {
+    search: string;
+    page: number;
+    pageSize: number;
+    role: ManagerRole | null;
+}
+
+export type { UserChangePasswordRequest, UserFilter, UserRequest, UserResponse };

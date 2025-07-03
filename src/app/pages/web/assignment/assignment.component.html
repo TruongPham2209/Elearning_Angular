@@ -30,7 +30,7 @@
                             <i class="bi bi-clock-fill me-2" [class]="getDeadlineStatus().class"></i>
                             <div>
                                 <strong>Hạn nộp bài:</strong>
-                                <span class="ms-2">{{ formatDateTime(assignment.deadline) }}</span>
+                                <span class="ms-2">{{ assignment.deadline | date: 'dd/MM/yyyy : HH:mm:ss' }}</span>
                                 <span
                                     class="badge ms-2"
                                     [class.bg-success]="getDeadlineStatus().class === 'text-success'"
@@ -167,7 +167,7 @@
                                     <div class="col-md-6">
                                         <div class="submission-info">
                                             <label class="form-label text-muted fw-bold">Thời gian nộp:</label>
-                                            <p class="mb-0">{{ formatDateTime(submission.performAt) }}</p>
+                                            <p class="mb-0">{{ submission.uploadAt | date: 'dd/MM/yyyy HH:mm:ss' }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -181,7 +181,7 @@
                                         class="btn btn-outline-danger"
                                         type="button"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#confirmRemoveModal"
+                                        (click)="openConfirmDeleteModal(confirmRemoveModal)"
                                     >
                                         <i class="bi bi-trash me-2"></i>
                                         Gỡ bài
@@ -197,44 +197,49 @@
 </div>
 
 <!-- Confirmation Modal for Remove Submission -->
-<div
-    class="modal fade"
-    id="confirmRemoveModal"
-    tabindex="-1"
-    aria-labelledby="confirmRemoveModalLabel"
-    aria-hidden="true"
->
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title" id="confirmRemoveModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                    Xác nhận gỡ bài
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">Bạn có chắc chắn muốn gỡ bài tập đã nộp không?</p>
-                <div class="alert alert-warning d-flex align-items-start">
-                    <i class="bi bi-info-circle-fill me-2 mt-1"></i>
-                    <div>
-                        <small>
-                            <strong>Lưu ý:</strong> Sau khi gỡ bài, bạn sẽ cần nộp lại bài tập. Hãy đảm bảo rằng bạn vẫn
-                            còn thời gian để nộp bài mới.
-                        </small>
-                    </div>
+
+<ng-template #confirmRemoveModal let-modal>
+    <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title" id="confirmRemoveModalLabel">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                Xác nhận gỡ bài
+            </h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                (click)="modal.dismiss('cancel')"
+            ></button>
+        </div>
+        <div class="modal-body">
+            <p class="mb-3">Bạn có chắc chắn muốn gỡ bài tập đã nộp không?</p>
+            <div class="alert alert-warning d-flex align-items-start">
+                <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                <div>
+                    <small>
+                        <strong>Lưu ý:</strong> Sau khi gỡ bài, bạn sẽ cần nộp lại bài tập. Hãy đảm bảo rằng bạn vẫn còn
+                        thời gian để nộp bài mới.
+                    </small>
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>
-                    Hủy bỏ
-                </button>
-                <button type="button" class="btn btn-danger" (click)="removeSubmission()">
-                    <i class="bi bi-trash me-2"></i>
-                    Xác nhận gỡ
-                </button>
-            </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="modal.dismiss('cancel')">
+                <i class="bi bi-x-circle me-2"></i>
+                Hủy bỏ
+            </button>
+
+            <button type="button" class="btn btn-danger" (click)="confirmRemoveSubmission()" [disabled]="isRemoving">
+                <ng-container *ngIf="!isRemoving; else loadingTemplate">
+                    <i class="bi bi-trash me-2"></i>Xóa
+                </ng-container>
+                <ng-template #loadingTemplate>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang xóa...
+                </ng-template>
+            </button>
         </div>
     </div>
-</div>
+</ng-template>

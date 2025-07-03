@@ -47,8 +47,8 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr *ngFor="let course of courses; let i = index">
-                                    <td>{{ paginationInfo.currentPage * paginationInfo.pageSize + i + 1 }}</td>
+                                <tr *ngFor="let course of courses.content; let i = index">
+                                    <td>{{ courses.currentPage * courses.pageSize + i + 1 }}</td>
                                     <td>{{ course.name }}</td>
                                     <td>{{ course.sessions }}</td>
                                     <td>{{ course.shortDescription }}</td>
@@ -81,7 +81,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr *ngIf="courses.length === 0 && !isLoading">
+                                <tr *ngIf="courses.content.length === 0 && !isLoading">
                                     <td colspan="6" class="text-center text-muted">
                                         Chưa có khóa học nào trong học kỳ này
                                     </td>
@@ -91,23 +91,16 @@
                     </div>
 
                     <!-- Pagination -->
-                    <nav *ngIf="paginationInfo.totalPages > 1" class="mt-4">
+                    <nav *ngIf="courses.totalPages > 1" class="mt-4">
                         <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <small class="text-muted">
-                                    Hiển thị {{ paginationInfo.currentPage * paginationInfo.pageSize + 1 }} -
-                                    {{ getEndIndex() }}
-                                    trong tổng số {{ paginationInfo.totalItems }} khóa học
-                                </small>
-                            </div>
                             <div class="col-md-6">
                                 <ul class="pagination pagination-sm justify-content-end mb-0">
                                     <!-- Previous Button -->
-                                    <li class="page-item" [class.disabled]="paginationInfo.currentPage === 0">
+                                    <li class="page-item" [class.disabled]="courses.currentPage === 0">
                                         <button
                                             class="page-link"
-                                            (click)="onPageChange(paginationInfo.currentPage - 1)"
-                                            [disabled]="paginationInfo.currentPage === 0 || isLoading"
+                                            (click)="onPageChange(courses.currentPage - 1)"
+                                            [disabled]="courses.currentPage === 0 || isLoading"
                                         >
                                             <i class="bi bi-chevron-left"></i>
                                         </button>
@@ -117,7 +110,7 @@
                                     <li
                                         *ngFor="let page of getDisplayPages()"
                                         class="page-item"
-                                        [class.active]="page === paginationInfo.currentPage"
+                                        [class.active]="page === courses.currentPage"
                                         [class.disabled]="page === -1"
                                     >
                                         <button
@@ -134,14 +127,12 @@
                                     <!-- Next Button -->
                                     <li
                                         class="page-item"
-                                        [class.disabled]="paginationInfo.currentPage >= paginationInfo.totalPages - 1"
+                                        [class.disabled]="courses.currentPage >= courses.totalPages - 1"
                                     >
                                         <button
                                             class="page-link"
-                                            (click)="onPageChange(paginationInfo.currentPage + 1)"
-                                            [disabled]="
-                                                paginationInfo.currentPage >= paginationInfo.totalPages - 1 || isLoading
-                                            "
+                                            (click)="onPageChange(courses.currentPage + 1)"
+                                            [disabled]="courses.currentPage >= courses.totalPages - 1 || isLoading"
                                         >
                                             <i class="bi bi-chevron-right"></i>
                                         </button>

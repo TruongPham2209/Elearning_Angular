@@ -1,17 +1,11 @@
+import { UserService } from './../../../core/services/api/user.service';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-// Interfaces
-export interface User {
-    id: number;
-    username: string;
-    fullname: string;
-    email: string;
-    role: 'LECTURER' | 'STUDENT';
-}
-
-export type UserRole = 'ALL' | 'LECTURER' | 'STUDENT';
+import { UserFilter, UserRequest, UserResponse } from '../../../core/models/api/user.model';
+import { ManagerRole } from '../../../core/models/enum/role.model';
+import { Page } from '../../../core/models/types/page.interface';
+import { ToastService } from '../../../core/services/ui/toast.service';
 
 @Component({
     selector: 'admin-user-page',
@@ -21,17 +15,21 @@ export type UserRole = 'ALL' | 'LECTURER' | 'STUDENT';
 })
 export class AdminUserPage implements OnInit {
     // Search and filter properties
-    searchTerm: string = '';
-    selectedRole: UserRole = 'ALL';
     searchQuery: string = '';
-
-    // Pagination properties
-    currentPage: number = 0;
-    pageSize: number = 10;
-    totalPages: number = 0;
+    filter: UserFilter = {
+        search: '',
+        role: null,
+        page: 0,
+        pageSize: 20,
+    };
 
     // Data properties
-    users: User[] = [];
+    users: Page<UserResponse> = {
+        content: [],
+        totalPages: 0,
+        pageSize: 0,
+        currentPage: 0,
+    };
     isLoading: boolean = false;
 
     // Modal properties
@@ -40,11 +38,16 @@ export class AdminUserPage implements OnInit {
     isImporting: boolean = false;
 
     // Role options for filter
-    roleOptions: { value: UserRole; label: string }[] = [
-        { value: 'ALL', label: 'Tất cả vai trò' },
-        { value: 'LECTURER', label: 'Giảng viên' },
-        { value: 'STUDENT', label: 'Sinh viên' },
+    roleOptions: { value: ManagerRole | null; label: string }[] = [
+        { value: null, label: 'Tất cả vai trò' },
+        { value: ManagerRole.LECTURER, label: 'Giảng viên' },
+        { value: ManagerRole.STUDENT, label: 'Sinh viên' },
     ];
+
+    constructor(
+        private readonly userService: UserService,
+        private readonly toastService: ToastService,
+    ) {}
 
     ngOnInit() {
         this.loadUsers();
@@ -53,77 +56,49 @@ export class AdminUserPage implements OnInit {
     // Load users with current filters and pagination
     loadUsers() {
         this.isLoading = true;
-
-        // Simulate API call
-        setTimeout(() => {
-            // Mock data - replace with actual API call
-            const mockUsers: User[] = [
-                { id: 1, username: 'john_doe', fullname: 'John Doe', email: 'john@example.com', role: 'STUDENT' },
-                { id: 2, username: 'jane_smith', fullname: 'Jane Smith', email: 'jane@example.com', role: 'LECTURER' },
-                { id: 3, username: 'bob_wilson', fullname: 'Bob Wilson', email: 'bob@example.com', role: 'STUDENT' },
-                {
-                    id: 4,
-                    username: 'alice_brown',
-                    fullname: 'Alice Brown',
-                    email: 'alice@example.com',
-                    role: 'LECTURER',
-                },
-                {
-                    id: 5,
-                    username: 'charlie_davis',
-                    fullname: 'Charlie Davis',
-                    email: 'charlie@example.com',
-                    role: 'STUDENT',
-                },
-            ];
-
-            // Apply filters
-            let filteredUsers = mockUsers;
-
-            if (this.searchTerm.trim()) {
-                const searchLower = this.searchTerm.toLowerCase();
-                filteredUsers = filteredUsers.filter(
-                    (user) =>
-                        user.fullname.toLowerCase().includes(searchLower) ||
-                        user.email.toLowerCase().includes(searchLower),
-                );
-            }
-
-            if (this.selectedRole !== 'ALL') {
-                filteredUsers = filteredUsers.filter((user) => user.role === this.selectedRole);
-            }
-
-            // Mock pagination
-            this.totalPages = Math.ceil(filteredUsers.length / this.pageSize);
-            const startIndex = this.currentPage * this.pageSize;
-            this.users = filteredUsers.slice(startIndex, startIndex + this.pageSize);
-
-            this.isLoading = false;
-        }, 1000);
+        this.userService.getAll(this.filter).subscribe({
+            next: (response) => {
+                this.users = response;
+                this.filter.page = response.currentPage;
+                this.filter.pageSize = response.pageSize;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this.toastService.show(error.message, 'error');
+            },
+        });
     }
 
     // Search functionality
     onSearch() {
         this.searchQuery = this.buildSearchQuery();
-        this.currentPage = 0;
+        this.filter.page = 0;
+        this.loadUsers();
+    }
+
+    clearQuery() {
+        this.searchQuery = '';
+        this.filter.search = '';
+        this.filter.role = null;
         this.loadUsers();
     }
 
     onRoleChange() {
         this.searchQuery = this.buildSearchQuery();
-        this.currentPage = 0;
+        this.filter.page = 0;
         this.loadUsers();
     }
 
     private buildSearchQuery(): string {
         const parts: string[] = [];
 
-        if (this.searchTerm.trim()) {
-            parts.push(`"${this.searchTerm.trim()}"`);
+        if (this.filter.search.trim()) {
+            parts.push(`"${this.filter.search.trim()}"`);
         }
 
-        if (this.selectedRole !== 'ALL') {
-            const roleLabel = this.roleOptions.find((r) => r.value === this.selectedRole)?.label || '';
+        if (this.filter.role) {
+            const roleLabel = this.roleOptions.find((r) => r.value === this.filter.role)?.label || '';
             parts.push(`vai trò: ${roleLabel}`);
         }
 
@@ -132,8 +107,8 @@ export class AdminUserPage implements OnInit {
 
     // Pagination
     goToPage(page: number) {
-        if (page >= 0 && page < this.totalPages) {
-            this.currentPage = page;
+        if (page >= 0 && page < this.users.totalPages) {
+            this.filter.page = page;
             this.loadUsers();
         }
     }
@@ -143,8 +118,8 @@ export class AdminUserPage implements OnInit {
         const maxVisiblePages = 5;
         const halfVisible = Math.floor(maxVisiblePages / 2);
 
-        let startPage = Math.max(0, this.currentPage - halfVisible);
-        let endPage = Math.min(this.totalPages - 1, startPage + maxVisiblePages - 1);
+        let startPage = Math.max(0, this.filter.page - halfVisible);
+        let endPage = Math.min(this.users.totalPages - 1, startPage + maxVisiblePages - 1);
 
         if (endPage - startPage + 1 < maxVisiblePages) {
             startPage = Math.max(0, endPage - maxVisiblePages + 1);
@@ -173,26 +148,31 @@ export class AdminUserPage implements OnInit {
         if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
             this.selectedFile = file;
         } else {
-            alert('Vui lòng chọn file Excel (.xlsx)');
+            this.toastService.show('Vui lòng chọn file Excel hợp lệ', 'warning');
             event.target.value = '';
         }
     }
 
     importUsers() {
         if (!this.selectedFile) {
-            alert('Vui lòng chọn file để import');
+            this.toastService.show('Vui lòng chọn file để nhập', 'warning');
             return;
         }
 
         this.isImporting = true;
-
-        // Simulate import process
-        setTimeout(() => {
-            this.isImporting = false;
-            this.closeImportModal();
-            alert('Import thành công!');
-            this.loadUsers(); // Reload data
-        }, 2000);
+        const users: UserRequest[] = []; // This should be populated with parsed data from the file
+        this.userService.createBatchingUsers(users).subscribe({
+            next: () => {
+                this.toastService.show('Nhập người dùng thành công', 'success');
+                this.isImporting = false;
+                this.closeImportModal();
+                this.loadUsers(); // Reload data
+            },
+            error: (error) => {
+                this.isImporting = false;
+                this.toastService.show(error.message, 'error');
+            },
+        });
     }
 
     downloadTemplate() {
@@ -209,11 +189,11 @@ export class AdminUserPage implements OnInit {
     }
 
     // Utility methods
-    getRoleDisplayName(role: string): string {
-        return role === 'LECTURER' ? 'Giảng viên' : 'Sinh viên';
+    getRoleDisplayName(role: ManagerRole): string {
+        return role === ManagerRole.LECTURER ? 'Giảng viên' : 'Sinh viên';
     }
 
-    getRoleBadgeClass(role: string): string {
-        return role === 'LECTURER' ? 'badge bg-primary' : 'badge bg-success';
+    getRoleBadgeClass(role: ManagerRole): string {
+        return role === ManagerRole.LECTURER ? 'badge bg-primary' : 'badge bg-success';
     }
 }

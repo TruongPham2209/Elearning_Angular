@@ -19,7 +19,7 @@
                             id="searchInput"
                             class="form-control"
                             placeholder="Nhập tên hoặc email..."
-                            [(ngModel)]="searchTerm"
+                            [(ngModel)]="filter.search"
                             (keyup.enter)="onSearch()"
                         />
                         <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
@@ -31,7 +31,7 @@
                 <!-- Role Filter -->
                 <div class="col-md-4">
                     <label for="roleFilter" class="form-label">Lọc theo vai trò</label>
-                    <select id="roleFilter" class="form-select" [(ngModel)]="selectedRole" (change)="onRoleChange()">
+                    <select id="roleFilter" class="form-select" [(ngModel)]="filter.role" (change)="onRoleChange()">
                         <option *ngFor="let option of roleOptions" [value]="option.value">
                             {{ option.label }}
                         </option>
@@ -52,18 +52,14 @@
     <div class="alert alert-info" *ngIf="searchQuery">
         <i class="fas fa-info-circle me-2"></i>
         Hiển thị kết quả tìm kiếm cho: <strong>{{ searchQuery }}</strong>
-        <button
-            type="button"
-            class="btn-close float-end"
-            (click)="searchTerm = ''; selectedRole = 'ALL'; onSearch()"
-        ></button>
+        <button type="button" class="btn-close float-end" (click)="clearQuery()"></button>
     </div>
 
     <!-- Users Table -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Danh sách người dùng</h5>
-            <span class="badge bg-secondary">{{ users.length }} người dùng</span>
+            <span class="badge bg-secondary">{{ users.content.length }} người dùng</span>
         </div>
 
         <div class="card-body p-0">
@@ -88,8 +84,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let user of users; let i = index">
-                            <td>{{ currentPage * pageSize + i + 1 }}</td>
+                        <tr *ngFor="let user of users.content; let i = index">
+                            <td>{{ users.currentPage * users.pageSize + i + 1 }}</td>
                             <td>
                                 <strong>{{ user.username }}</strong>
                             </td>
@@ -109,7 +105,7 @@
                 </table>
 
                 <!-- Empty State -->
-                <div *ngIf="users.length === 0" class="text-center py-5">
+                <div *ngIf="users.content.length === 0" class="text-center py-5">
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">Không tìm thấy người dùng nào</h5>
                     <p class="text-muted">Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
@@ -118,12 +114,16 @@
         </div>
 
         <!-- Pagination -->
-        <div class="card-footer" *ngIf="!isLoading && totalPages > 1">
+        <div class="card-footer" *ngIf="!isLoading && users.totalPages > 1">
             <nav aria-label="User pagination">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     <!-- Previous Button -->
-                    <li class="page-item" [class.disabled]="currentPage === 0">
-                        <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+                    <li class="page-item" [class.disabled]="users.currentPage === 0">
+                        <button
+                            class="page-link"
+                            (click)="goToPage(users.currentPage - 1)"
+                            [disabled]="users.currentPage === 0"
+                        >
                             <i class="fas fa-chevron-left"></i>
                         </button>
                     </li>
@@ -132,7 +132,7 @@
                     <li
                         class="page-item"
                         *ngFor="let page of getPaginationPages()"
-                        [class.active]="page === currentPage"
+                        [class.active]="page === users.currentPage"
                     >
                         <button class="page-link" (click)="goToPage(page)">
                             {{ page + 1 }}
@@ -140,11 +140,11 @@
                     </li>
 
                     <!-- Next Button -->
-                    <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <li class="page-item" [class.disabled]="users.currentPage === users.totalPages - 1">
                         <button
                             class="page-link"
-                            (click)="goToPage(currentPage + 1)"
-                            [disabled]="currentPage === totalPages - 1"
+                            (click)="goToPage(users.currentPage + 1)"
+                            [disabled]="users.currentPage === users.totalPages - 1"
                         >
                             <i class="fas fa-chevron-right"></i>
                         </button>
@@ -154,7 +154,7 @@
 
             <!-- Pagination Info -->
             <div class="text-center mt-2">
-                <small class="text-muted"> Trang {{ currentPage + 1 }} / {{ totalPages }} </small>
+                <small class="text-muted"> Trang {{ users.currentPage + 1 }} / {{ users.totalPages }} </small>
             </div>
         </div>
     </div>

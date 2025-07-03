@@ -9,23 +9,17 @@ export function getTodayString(): string {
     return dateToInputString(new Date());
 }
 
-export function validateDates(startDate: string, endDate: string, isUpdate: boolean = false): string | null {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+export function validateDates(startDate: Date, endDate: Date, isUpdate: boolean = false): string | null {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to compare only dates
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return 'Start date and end date must be valid dates.';
-    }
-
     // Check if start date is valid
-    if (start < today && !isUpdate) {
+    if (startDate < today && !isUpdate) {
         return 'Start date must be today or a future date.';
     }
 
     // Check if end date is valid
-    if (end < start) {
+    if (endDate < startDate) {
         return 'End date must be a valid date and not before the start date.';
     }
 

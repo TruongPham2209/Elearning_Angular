@@ -26,8 +26,8 @@
                                 <tr *ngFor="let semester of semesters; let i = index">
                                     <td>{{ i + 1 }}</td>
                                     <td>{{ semester.name }}</td>
-                                    <td>{{ formatDate(semester.startDate) }}</td>
-                                    <td>{{ formatDate(semester.endDate) }}</td>
+                                    <td>{{ semester.startDate | date: 'dd/MM/yyyy' }}</td>
+                                    <td>{{ semester.endDate | date: 'dd/MM/yyyy' }}</td>
                                     <td class="text-center">
                                         <button
                                             type="button"
@@ -122,7 +122,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" (click)="closeModal()">Hủy</button>
-                    <button type="button" class="btn btn-primary" (click)="saveSemester()">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        (click)="saveSemester()"
+                        [disabled]="disableSaveButton()"
+                    >
                         {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
                     </button>
                 </div>

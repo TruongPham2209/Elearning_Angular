@@ -1,56 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-interface Announcement {
-    id: string;
-    title: string;
-    content: string;
-    createdAt: Date;
-}
-
-interface Document {
-    id: string;
-    lessionId: string;
-    title: string;
-    content: string;
-    createdAt: Date;
-    fileId: string;
-    fileName: string;
-}
-
-interface Assignment {
-    id: string;
-    lessionId: string;
-    title: string;
-    content: string;
-    deadline: Date;
-}
-
-interface Lession {
-    id: string;
-    name: string;
-    documents: Document[];
-    assignments: Assignment[];
-}
-
-interface CreateAnnouncementDto {
-    title: string;
-    content: string;
-}
-
-interface CreateDocumentDto {
-    lessionId: string;
-    title: string;
-    content: string;
-    file: File | null;
-}
-
-interface CreateAssignmentDto {
-    lessionId: string;
-    title: string;
-    content: string;
-    deadline: string;
-}
+import { LessionResponse } from '../../../core/models/api/lession.model';
+import { AnnouncementFilter, AnnouncementResponse } from '../../../core/models/api/announcement.model';
+import { AnnouncementService } from '../../../core/services/api/announcement.service';
+import { LessionService } from '../../../core/services/api/lession.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { ClassResponse } from '../../../core/models/api/class.model';
+import { ClassService } from '../../../core/services/api/class.service';
+import { Page } from '../../../core/models/types/page.interface';
 @Component({
     selector: 'web-class-page',
     imports: [CommonModule, RouterModule],
@@ -58,47 +16,16 @@ interface CreateAssignmentDto {
     styleUrl: './class.component.scss',
 })
 export class WebClassPage implements OnInit {
-    lessions: Lession[] = [
-        {
-            id: '1',
-            name: 'Buổi học 1: Giới thiệu khóa học',
-            documents: [
-                {
-                    id: '1',
-                    lessionId: '1',
-                    title: 'Bài giảng tuần 1',
-                    content: 'Nội dung giới thiệu về khóa học và mục tiêu học tập',
-                    createdAt: new Date('2024-01-15'),
-                    fileId: 'file1',
-                    fileName: 'bai-giang-tuan-1.pdf',
-                },
-            ],
-            assignments: [
-                {
-                    id: '1',
-                    lessionId: '1',
-                    title: 'Bài tập về nhà tuần 1',
-                    content: 'Hoàn thành bài tập trong sách giáo khoa',
-                    deadline: new Date('2024-12-30'),
-                },
-            ],
-        },
-        {
-            id: '2',
-            name: 'Buổi học 2: Lý thuyết cơ bản',
-            documents: [],
-            assignments: [],
-        },
-    ];
+    lessions: LessionResponse[] = [];
+    announcements: Page<AnnouncementResponse> = {
+        content: [],
+        totalPages: 0,
+        currentPage: 0,
+        pageSize: 10,
+    };
 
-    announcements: Announcement[] = [
-        {
-            id: '1',
-            title: 'Thông báo quan trọng',
-            content: 'Lớp học sẽ chuyển sang hình thức online từ tuần tới do tình hình thời tiết.',
-            createdAt: new Date('2024-01-10'),
-        },
-    ];
+    // state
+    isLoadingAnnouncements = false;
 
     // Modal states
     showAnnouncementModal = false;
@@ -107,15 +34,49 @@ export class WebClassPage implements OnInit {
     showAnnouncementDetailModal = false;
 
     // Form data
-    selectedAnnouncement: Announcement | null = null;
+    currentClass!: ClassResponse;
+    selectedAnnouncement: AnnouncementResponse | null = null;
+    announcementFilter: AnnouncementFilter = {
+        classId: '',
+        page: 0,
+        pageSize: 10,
+    };
 
     // Dropdown states
     expandedLessions: Set<string> = new Set();
     showAnnouncementDropdown = false;
 
-    constructor(private router: Router) {}
+    constructor(
+        private readonly router: Router,
+        private readonly announcementService: AnnouncementService,
+        private readonly lessionService: LessionService,
+        private readonly toastService: ToastService,
+        private readonly classService: ClassService,
+    ) {}
 
-    ngOnInit() {}
+    ngOnInit() {
+        // Lấy classId từ queryParams
+        const classId = this.router.routerState.snapshot.root.queryParams['classId'];
+        if (!classId) {
+            this.toastService.show('Không tìm thấy lớp học. Vui lòng thử lại sau.', 'error');
+            this.router.navigate(['/home']);
+            return;
+        }
+
+        this.classService.getById(classId).subscribe({
+            next: (classResponse) => {
+                this.currentClass = classResponse;
+                this.announcementFilter.classId = classResponse.id;
+                this.loadLessions();
+                this.loadAnnouncements();
+            },
+            error: (error) => {
+                console.error('Error fetching class:', error);
+                this.toastService.show('Không thể tải thông tin lớp học. Vui lòng thử lại sau.', 'error');
+                // this.router.navigate(['/home']);
+            },
+        });
+    }
 
     // Lession management
     toggleLession(lessionId: string) {
@@ -135,7 +96,7 @@ export class WebClassPage implements OnInit {
         this.showAnnouncementDropdown = !this.showAnnouncementDropdown;
     }
 
-    viewAnnouncementDetail(announcement: Announcement) {
+    viewAnnouncementDetail(announcement: AnnouncementResponse) {
         this.selectedAnnouncement = announcement;
         this.showAnnouncementDetailModal = true;
     }
@@ -149,19 +110,41 @@ export class WebClassPage implements OnInit {
         this.router.navigate(['/assignments'], { queryParams: { lessionId } });
     }
 
-    // Utility methods
-    parseDate(dateString: string): Date | null {
-        const parts = dateString.split('/');
-        if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-            const year = parseInt(parts[2], 10);
-            return new Date(year, month, day);
+    loadAnnouncements() {
+        if (this.isLoadingAnnouncements) return;
+        if (this.announcementFilter.page === this.announcements.currentPage) return;
+
+        // Kiểm tra tín hợp lệ của page từ filter so với announcements dựa vào currentPage và pageSize
+        if (this.announcementFilter.page < 0 || this.announcementFilter.page >= this.announcements.totalPages) {
+            this.toastService.show('Trang không hợp lệ. Vui lòng thử lại.', 'error');
+            return;
         }
-        return null;
+
+        this.isLoadingAnnouncements = true;
+        this.announcementService.getAll(this.announcementFilter).subscribe({
+            next: (response) => {
+                this.announcements = response;
+                this.announcementFilter.page = response.currentPage;
+                this.announcementFilter.pageSize = response.pageSize;
+                this.isLoadingAnnouncements = false;
+            },
+            error: (error) => {
+                console.error('Error fetching announcements:', error);
+                this.toastService.show('Không thể tải thông báo. Vui lòng thử lại sau.', 'error');
+                this.isLoadingAnnouncements = false;
+            },
+        });
     }
 
-    formatDate(date: Date): string {
-        return date.toLocaleDateString('vi-VN');
+    private loadLessions() {
+        this.lessionService.getLessionsByClassId(this.currentClass.id).subscribe({
+            next: (lessions) => {
+                this.lessions = lessions;
+            },
+            error: (error) => {
+                console.error('Error fetching lessions:', error);
+                this.toastService.show('Không thể tải các bài học. Vui lòng thử lại sau.', 'error');
+            },
+        });
     }
 }

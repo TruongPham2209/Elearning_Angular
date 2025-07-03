@@ -2,7 +2,7 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="page-title">Bài nộp của sinh viên cho {{ assignmentTitle }}</h2>
+            <!-- <h2 class="page-title">Bài nộp của sinh viên cho {{ assignment.title ||  }}</h2> -->
         </div>
     </div>
 
@@ -30,9 +30,20 @@
                             <th scope="col" class="text-center">Hành động</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr *ngFor="let submission of studentSubmissions">
-                            <td class="text-center fw-bold">{{ submission.studentId }}</td>
+
+                    <tbody *ngIf="isLoadingSubmissions" class="text-center">
+                        <tr>
+                            <td colspan="5" class="text-center overflow-hidden">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <tbody *ngIf="!isLoadingSubmissions">
+                        <tr *ngFor="let submission of studentSubmissions.content">
+                            <td class="text-center fw-bold">{{ submission.studentCode }}</td>
                             <td class="text-center">
                                 <span class="badge" [ngClass]="getStatusBadgeClass(submission.isSubmitted)">
                                     {{ getStatusText(submission.isSubmitted) }}
@@ -47,8 +58,8 @@
                                 </ng-template>
                             </td>
                             <td class="text-center">
-                                <span *ngIf="submission.submissionTime; else noTime">
-                                    {{ formatDateTime(submission.submissionTime) }}
+                                <span *ngIf="submission.uploadAt; else noTime">
+                                    {{ submission.uploadAt | date: 'dd/MM/yyyy HH:mm:ss' }}
                                 </span>
                                 <ng-template #noTime>
                                     <span class="text-muted">---</span>
@@ -97,16 +108,25 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-history me-2"></i>
-                    Lịch sử nộp bài - {{ selectedStudent?.studentId }}
+                    Lịch sử nộp bài - {{ selectedStudent?.studentCode }}
                 </h5>
                 <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div *ngIf="selectedStudent?.submissionHistory?.length === 0" class="text-center text-muted py-4">
+
+            <div class="modal-body" *ngIf="selectedStudent">
+                <div *ngIf="isLoadingHistory" class="text-center text-muted py-4">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                    <p>Đang tải lịch sử nộp bài...</p>
+                </div>
+
+                <div
+                    *ngIf="getSubmissionHistories(selectedStudent.studentCode) && !isLoadingHistory"
+                    class="text-center text-muted py-4"
+                >
                     <i class="fas fa-inbox fa-3x mb-3"></i>
                     <p>Sinh viên này chưa có lịch sử nộp bài</p>
                 </div>
-                <div *ngIf="selectedStudent?.submissionHistory?.length! > 0" class="history-container">
+                <div *ngIf="getSubmissionHistories(selectedStudent.studentCode).length > 0" class="history-container">
                     <table class="table table-striped">
                         <thead class="table-light">
                             <tr>
@@ -116,14 +136,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let history of selectedStudent?.submissionHistory">
+                            <tr *ngFor="let history of getSubmissionHistories(selectedStudent.studentCode)">
                                 <td class="text-center">
                                     <span class="badge" [ngClass]="getActionBadgeClass(history.action)">
                                         {{ getActionText(history.action) }}
                                     </span>
                                 </td>
                                 <td class="text-center">{{ history.fileName }}</td>
-                                <td class="text-center">{{ formatDateTime(history.timestamp) }}</td>
+                                <td class="text-center">{{ history.performAt | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
                             </tr>
                         </tbody>
                     </table>

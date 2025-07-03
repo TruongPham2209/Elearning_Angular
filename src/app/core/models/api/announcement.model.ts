@@ -4,6 +4,12 @@ interface AnnouncementRequest {
     content: string;
 }
 
+interface AnnouncementFilter {
+    classId: string;
+    page: number;
+    pageSize: number;
+}
+
 interface AnnouncementResponse {
     id: string;
     title: string;
@@ -11,4 +17,4 @@ interface AnnouncementResponse {
     createdAt: Date;
 }
 
-export type { AnnouncementRequest, AnnouncementResponse };
+export type { AnnouncementRequest, AnnouncementResponse, AnnouncementFilter };

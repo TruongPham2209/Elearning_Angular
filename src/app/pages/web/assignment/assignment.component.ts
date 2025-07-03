@@ -1,28 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-
-interface Assignment {
-    id: string;
-    title: string;
-    content: string;
-    deadline: Date;
-}
-
-interface Submission {
-    fileName: string;
-    downloadUrl: string;
-    performAt: Date;
-    file?: File;
-}
+import { Component, OnInit, TemplateRef } from '@angular/core';
+import { AssignmentResponse } from '../../../core/models/api/assignment.model';
+import { SubmissionResponse } from '../../../core/models/api/submission.model';
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { SubmissionService } from '../../../core/services/api/submission.service';
+import { AssignmentService } from '../../../core/services/api/assignment.service';
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
     selector: 'web-assignment-page',
-    imports: [CommonModule],
+    imports: [CommonModule, NgbModule],
     templateUrl: './assignment.component.html',
     styleUrl: './assignment.component.scss',
 })
-export class WebAssignmentPage {
-    assignment: Assignment = {
+export class WebAssignmentPage implements OnInit {
+    removeSubmissionModal: any;
+
+    assignment: AssignmentResponse = {
         id: '1',
         title: 'Bài tập lớn: Xây dựng ứng dụng web với Angular',
         content: `
@@ -38,22 +32,33 @@ export class WebAssignmentPage {
     `,
         deadline: new Date('2026-12-31T23:59:59'),
     };
-
-    submission: Submission | null = null;
+    submission: SubmissionResponse | null = null;
 
     // Để demo, có thể toggle giữa đã nộp và chưa nộp
-    isSubmitted = false;
+    isSubmitted = true;
+    isSubmitting = false;
+    isRemoving = false;
 
     isDragOver = false;
     selectedFile: File | null = null;
 
-    constructor() {
-        // Demo data cho trường hợp đã nộp bài
+    constructor(
+        private readonly toastService: ToastService,
+        private readonly assignmentService: AssignmentService,
+        private readonly submissionService: SubmissionService,
+        private readonly ngbModal: NgbModal,
+    ) {}
+
+    ngOnInit(): void {
         if (this.isSubmitted) {
             this.submission = {
+                id: 'sub1',
+                assignmentId: this.assignment.id,
+                studentCode: 'SV001',
                 fileName: 'baitap-angular-NguyenVanA.zip',
-                downloadUrl: '#',
-                performAt: new Date('2024-12-15T14:30:00'),
+                fileId: '#',
+                uploadAt: new Date('2024-12-15T14:30:00'),
+                isSubmitted: true,
             };
         }
     }
@@ -86,81 +91,80 @@ export class WebAssignmentPage {
     }
 
     handleFileSelect(file: File) {
-        // Validate file (có thể thêm các validation khác như size, type)
         if (file.size > 50 * 1024 * 1024) {
             // 50MB limit
-            alert('File quá lớn! Vui lòng chọn file nhỏ hơn 50MB.');
+            this.toastService.show('File quá lớn, vui lòng chọn file nhỏ hơn 50MB!', 'error');
             return;
         }
 
         this.selectedFile = file;
     }
 
+    openConfirmDeleteModal(content: TemplateRef<any>) {
+        this.removeSubmissionModal = this.ngbModal.open(content, {
+            centered: true,
+        });
+    }
+
     submitAssignment() {
         if (!this.selectedFile) {
-            alert('Vui lòng chọn file để nộp bài!');
+            this.toastService.show('Vui lòng chọn file để nộp bài!', 'warning');
             return;
         }
 
-        // Simulate API call
+        if (this.assignment.deadline < new Date()) {
+            this.toastService.show('Hạn nộp bài đã qua!', 'error');
+            return;
+        }
+
+        if (this.isSubmitting) {
+            this.toastService.show('Đang nộp bài, vui lòng đợi!', 'warning');
+            return;
+        }
+
+        this.isSubmitting = true;
         console.log('Submitting file:', this.selectedFile.name);
+        this.submissionService.submit(this.assignment.id, this.selectedFile).subscribe({
+            next: (response) => {
+                this.submission = response;
+                this.isSubmitted = true;
+                this.selectedFile = null;
 
-        // Mock submission
-        this.submission = {
-            fileName: this.selectedFile.name,
-            downloadUrl: URL.createObjectURL(this.selectedFile),
-            performAt: new Date(),
-            file: this.selectedFile,
-        };
-
-        this.isSubmitted = true;
-        this.selectedFile = null;
-
-        alert('Nộp bài thành công!');
+                this.toastService.show('Nộp bài thành công!', 'success');
+                this.isSubmitting = false;
+            },
+            error: (error) => {
+                console.error('Error submitting assignment:', error);
+                this.toastService.show('Nộp bài thất bại! Vui lòng thử lại sau.', 'error');
+                this.isSubmitting = false;
+            },
+        });
     }
 
     confirmRemoveSubmission() {
-        // Bootstrap modal sẽ được trigger bởi data-bs-toggle
-        // Logic xử lý sẽ ở removeSubmission()
-    }
-
-    removeSubmission() {
-        // Simulate API call to remove submission
-        console.log('Removing submission...');
-
-        this.submission = null;
-        this.isSubmitted = false;
-
-        // Close modal programmatically
-        const modal = document.getElementById('confirmRemoveModal');
-        if (modal) {
-            const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
-            if (bootstrapModal) {
-                bootstrapModal.hide();
-            }
+        if (this.isRemoving) {
+            this.toastService.show('Đang gỡ bài, vui lòng đợi!', 'warning');
+            return;
         }
 
-        alert('Đã gỡ bài thành công!');
+        this.isRemoving = true;
+        setTimeout(() => {
+            this.submission = null;
+            this.isSubmitted = false;
+            this.isRemoving = false;
+
+            this.toastService.show('Đã gỡ bài nộp thành công!', 'success');
+            this.removeSubmissionModal?.close();
+        }, 1000);
     }
 
     downloadSubmission() {
-        if (this.submission?.downloadUrl) {
+        if (this.submission) {
             const link = document.createElement('a');
-            link.href = this.submission.downloadUrl;
+            link.href = this.submission.fileId;
             link.download = this.submission.fileName;
             link.click();
         }
-    }
-
-    formatDateTime(date: Date): string {
-        return new Intl.DateTimeFormat('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        }).format(date);
     }
 
     isDeadlinePassed(): boolean {

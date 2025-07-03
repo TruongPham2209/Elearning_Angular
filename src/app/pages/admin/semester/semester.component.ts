@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SemesterResponse, SemesterForm } from '../../../core/models/api/semester.model';
+import { SemesterForm, SemesterResponse } from '../../../core/models/api/semester.model';
+import { SemesterService } from '../../../core/services/api/semester.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
 import * as DatetimeUtil from '../../../core/utils/datetime.util';
-import { mockSemesters } from '../../../core/utils/mockdata.util';
 
 @Component({
     selector: 'admin-semester-page',
@@ -12,25 +13,43 @@ import { mockSemesters } from '../../../core/utils/mockdata.util';
     templateUrl: './semester.component.html',
     styleUrl: './semester.component.scss',
 })
-export class AdminSemesterPage {
-    semesters: SemesterResponse[] = mockSemesters;
+export class AdminSemesterPage implements OnInit {
+    semesters: SemesterResponse[] = [];
 
     showModal = false;
     isEditMode = false;
     currentSemesterForm: SemesterForm = {
         id: '',
         name: '',
-        startDate: '',
-        endDate: '',
+        startDate: new Date(),
+        endDate: new Date(),
     };
+
+    constructor(
+        private readonly semesterService: SemesterService,
+        private readonly toastService: ToastService,
+    ) {}
+
+    ngOnInit(): void {
+        this.semesterService.getAll().subscribe({
+            next: (data) => {
+                this.semesters = data;
+            },
+            error: (error) => {
+                console.error('Error fetching semesters:', error);
+                // alert('Không thể tải danh sách học kỳ. Vui lòng thử lại sau.');
+                this.toastService.show('Không thể tải danh sách học kỳ. Vui lòng thử lại sau.', 'error');
+            },
+        });
+    }
 
     openAddModal() {
         this.isEditMode = false;
         this.currentSemesterForm = {
             id: '',
             name: '',
-            startDate: '',
-            endDate: '',
+            startDate: new Date(),
+            endDate: new Date(),
         };
         this.showModal = true;
     }
@@ -40,8 +59,8 @@ export class AdminSemesterPage {
         this.currentSemesterForm = {
             id: semester.id,
             name: semester.name,
-            startDate: DatetimeUtil.dateToInputString(semester.startDate),
-            endDate: DatetimeUtil.dateToInputString(semester.endDate),
+            startDate: new Date(),
+            endDate: new Date(),
         };
         this.showModal = true;
     }
@@ -51,8 +70,8 @@ export class AdminSemesterPage {
         this.currentSemesterForm = {
             id: '',
             name: '',
-            startDate: '',
-            endDate: '',
+            startDate: new Date(),
+            endDate: new Date(),
         };
     }
 
@@ -68,36 +87,46 @@ export class AdminSemesterPage {
         );
     }
 
-    saveSemester() {
-        // Basic validation
-        if (
+    disableSaveButton(): boolean {
+        return (
             !this.currentSemesterForm.name ||
             !this.currentSemesterForm.startDate ||
-            !this.currentSemesterForm.endDate
-        ) {
-            alert('Vui lòng điền đầy đủ thông tin!');
-            return;
-        }
-
-        // Date validation
-        const validationError = this.validateDates(this.isEditMode);
-        if (validationError) {
-            alert(validationError);
-            return;
-        }
-
-        const semesterData: SemesterResponse = {
-            id: this.currentSemesterForm.id,
-            name: this.currentSemesterForm.name,
-            startDate: new Date(this.currentSemesterForm.startDate),
-            endDate: new Date(this.currentSemesterForm.endDate),
-        };
-        console.log('Saving semester:', semesterData);
-
-        this.closeModal();
+            !this.currentSemesterForm.endDate ||
+            this.validateDates(this.isEditMode) !== null
+        );
     }
 
-    formatDate(date: Date): string {
-        return date.toLocaleDateString('vi-VN');
+    saveSemester() {
+        if (this.disableSaveButton()) {
+            this.toastService.show('Vui lòng điền đầy đủ thông tin và kiểm tra lại ngày tháng.', 'warning');
+            return;
+        }
+
+        this.currentSemesterForm.id = this.isEditMode ? this.currentSemesterForm.id : '';
+        this.semesterService.save(this.currentSemesterForm).subscribe({
+            next: (response) => {
+                if (this.isEditMode) {
+                    const index = this.semesters.findIndex((s) => s.id === this.currentSemesterForm.id);
+                    if (index !== -1) {
+                        this.semesters[index] = response;
+                    }
+                } else {
+                    this.semesters.push(response);
+                }
+                this.toastService.show(
+                    this.isEditMode ? 'Cập nhật học kỳ thành công.' : 'Thêm học kỳ mới thành công.',
+                    'success',
+                );
+                this.closeModal();
+            },
+            error: (error) => {
+                console.error('Error saving semester:', error);
+                this.toastService.show(
+                    this.isEditMode ? 'Cập nhật học kỳ thất bại.' : 'Thêm học kỳ mới thất bại.',
+                    'error',
+                );
+                this.closeModal();
+            },
+        });
     }
 }
