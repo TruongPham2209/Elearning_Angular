@@ -3,12 +3,16 @@ import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { AUTHORIZATION_SERVER } from '../../../../environments/endpoint.env';
 import { ManagerRole } from '../../models/enum/role.model';
+import { ToastService } from '../ui/toast.service';
 
 @Injectable({
     providedIn: 'root',
 })
 export class AuthenticationService {
-    constructor(private readonly router: Router) {}
+    constructor(
+        private readonly router: Router,
+        private readonly toastService: ToastService,
+    ) {}
 
     isAuthenticated(): boolean {
         const accessToken = localStorage.getItem('access_token');
@@ -47,7 +51,7 @@ export class AuthenticationService {
 
     logout() {
         localStorage.removeItem('access_token');
-        // this.router.navigate(['/login']);
+        this.toastService.show('You have been logged out successfully.', 'success');
         window.location.href = `${AUTHORIZATION_SERVER}/logout`;
     }
 }

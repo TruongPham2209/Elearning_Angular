@@ -115,42 +115,17 @@
 
         <!-- Pagination -->
         <div class="card-footer" *ngIf="!isLoading && users.totalPages > 1">
-            <nav aria-label="User pagination">
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <!-- Previous Button -->
-                    <li class="page-item" [class.disabled]="users.currentPage === 0">
-                        <button
-                            class="page-link"
-                            (click)="goToPage(users.currentPage - 1)"
-                            [disabled]="users.currentPage === 0"
-                        >
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                    </li>
-
-                    <!-- Page Numbers -->
-                    <li
-                        class="page-item"
-                        *ngFor="let page of getPaginationPages()"
-                        [class.active]="page === users.currentPage"
-                    >
-                        <button class="page-link" (click)="goToPage(page)">
-                            {{ page + 1 }}
-                        </button>
-                    </li>
-
-                    <!-- Next Button -->
-                    <li class="page-item" [class.disabled]="users.currentPage === users.totalPages - 1">
-                        <button
-                            class="page-link"
-                            (click)="goToPage(users.currentPage + 1)"
-                            [disabled]="users.currentPage === users.totalPages - 1"
-                        >
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </li>
-                </ul>
-            </nav>
+            <ngb-pagination
+                class="d-flex justify-content-center"
+                [(page)]="currentPage"
+                [pageSize]="users.pageSize"
+                [collectionSize]="users.totalPages * users.pageSize"
+                [maxSize]="5"
+                [rotate]="true"
+                [boundaryLinks]="true"
+                (pageChange)="onPageChange($event)"
+            >
+            </ngb-pagination>
 
             <!-- Pagination Info -->
             <div class="text-center mt-2">
@@ -160,91 +135,167 @@
     </div>
 </div>
 
-<!-- Import Modal -->
-<div
-    class="modal fade"
-    [class.show]="showImportModal"
-    [style.display]="showImportModal ? 'block' : 'none'"
-    id="importModal"
-    tabindex="-1"
-    aria-labelledby="importModalLabel"
-    aria-hidden="true"
->
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importModalLabel">
-                    <i class="fas fa-file-import me-2"></i>Import người dùng từ Excel
-                </h5>
-                <button type="button" class="btn-close" (click)="closeImportModal()"></button>
-            </div>
+<!-- Import Modal Template -->
+<ng-template #importModalContent let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title"><i class="fas fa-file-import me-2"></i>Import người dùng từ Excel</h4>
+        <button type="button" class="btn-close" (click)="modal.dismiss()" [disabled]="isImporting"></button>
+    </div>
 
-            <div class="modal-body">
-                <!-- File Upload -->
-                <div class="mb-3">
-                    <label for="fileInput" class="form-label">Chọn file Excel</label>
-                    <input
-                        type="file"
-                        class="form-control"
-                        id="fileInput"
-                        accept=".xlsx,.xls"
-                        (change)="onFileSelect($event)"
-                    />
-                    <div class="form-text">Chỉ chấp nhận file Excel (.xlsx, .xls). Tối đa 10MB.</div>
+    <div class="modal-body">
+        <!-- File Upload -->
+        <div class="mb-3">
+            <label for="fileInput" class="form-label">Chọn file Excel</label>
+            <input
+                type="file"
+                class="form-control"
+                id="fileInput"
+                accept=".xlsx,.xls"
+                (change)="onFileSelect($event)"
+                [disabled]="isImporting"
+            />
+            <div class="form-text">Chỉ chấp nhận file Excel (.xlsx, .xls). Tối đa 10MB.</div>
+        </div>
+
+        <!-- Selected File Info -->
+        <div class="alert alert-info" *ngIf="selectedFile">
+            <i class="fas fa-file-excel me-2"></i>
+            <strong>File đã chọn:</strong> {{ selectedFile.name }}
+            <br />
+            <small>Kích thước: {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+        </div>
+
+        <!-- Parsed Users Preview -->
+        <div class="alert alert-success" *ngIf="parsedUsers.length > 0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Đã phân tích được {{ parsedUsers.length }} người dùng từ file</strong>
                 </div>
-
-                <!-- Selected File Info -->
-                <div class="alert alert-info" *ngIf="selectedFile">
-                    <i class="fas fa-file-excel me-2"></i>
-                    <strong>File đã chọn:</strong> {{ selectedFile.name }}
-                    <br />
-                    <small>Kích thước: {{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
-                </div>
-
-                <!-- Format Requirements -->
-                <div class="alert alert-warning">
-                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Yêu cầu định dạng:</h6>
-                    <ul class="mb-0">
-                        <li>File phải có header với các cột: <code>username, fullname, email, role</code></li>
-                        <li>
-                            Cột <code>role</code> chỉ chấp nhận giá trị: <code>STUDENT</code> hoặc <code>LECTURER</code>
-                        </li>
-                        <li>Email phải đúng định dạng</li>
-                        <li>Username không được trùng lặp</li>
-                    </ul>
-                </div>
-
-                <!-- Download Template -->
-                <div class="text-center mb-3">
-                    <button type="button" class="btn btn-outline-primary" (click)="downloadTemplate()">
-                        <i class="fas fa-download me-2"></i>Tải file mẫu
-                    </button>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="closeImportModal()" [disabled]="isImporting">
-                    Hủy
-                </button>
                 <button
                     type="button"
-                    class="btn btn-success"
-                    (click)="importUsers()"
-                    [disabled]="!selectedFile || isImporting"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="showPreviewModal()"
+                    [disabled]="isImporting"
                 >
-                    <span *ngIf="isImporting" class="spinner-border spinner-border-sm me-2"></span>
-                    <i *ngIf="!isImporting" class="fas fa-upload me-2"></i>
-                    {{ isImporting ? 'Đang import...' : 'Import' }}
+                    <i class="fas fa-eye me-1"></i>Xem danh sách
                 </button>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Modal Backdrop -->
-<div
-    class="modal-backdrop fade"
-    [class.show]="showImportModal"
-    *ngIf="showImportModal"
-    (click)="closeImportModal()"
-></div>
+        <!-- Loading State -->
+        <div *ngIf="isParsingFile" class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang phân tích file...</span>
+            </div>
+            <p class="mt-2 text-muted">Đang phân tích file Excel...</p>
+        </div>
+
+        <!-- Format Requirements -->
+        <div class="alert alert-warning">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Yêu cầu định dạng:</h6>
+            <ul class="mb-0">
+                <li>File phải có header với các cột: <code>username, fullName, email, role</code></li>
+                <li>Cột <code>role</code> chỉ chấp nhận giá trị: <code>STUDENT</code> hoặc <code>LECTURER</code></li>
+                <li>Email phải đúng định dạng</li>
+                <li>Username không được trùng lặp</li>
+            </ul>
+        </div>
+
+        <!-- Download Template -->
+        <div class="text-center mb-3">
+            <button type="button" class="btn btn-outline-primary" (click)="downloadTemplate()" [disabled]="isImporting">
+                <i class="fas fa-download me-2"></i>Tải file mẫu
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="modal.dismiss()" [disabled]="isImporting">Hủy</button>
+        <button
+            type="button"
+            class="btn btn-success"
+            (click)="importUsers(modal)"
+            [disabled]="!selectedFile || parsedUsers.length === 0 || isImporting"
+        >
+            <span *ngIf="isImporting" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isImporting" class="fas fa-upload me-2"></i>
+            {{ isImporting ? 'Đang import...' : 'Import ' + parsedUsers.length + ' người dùng' }}
+        </button>
+    </div>
+</ng-template>
+
+<!-- Preview Modal Template -->
+<ng-template #previewModalContent let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title"><i class="fas fa-eye me-2"></i>Danh sách người dùng sẽ được import</h4>
+        <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body">
+        <!-- Info Alert -->
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Lưu ý:</strong> Chỉ import các người dùng có thông tin hợp lệ. Những người dùng đã tồn tại sẽ được
+            bỏ qua.
+        </div>
+
+        <!-- Users Preview Table -->
+        <div class="table-responsive" style="max-height: 400px">
+            <table class="table table-striped table-sm">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tên đăng nhập</th>
+                        <th scope="col">Họ và tên</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Vai trò</th>
+                        <th scope="col">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of parsedUsers; let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.fullName }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span [class]="getRoleBadgeClass(user.role)">
+                                {{ getRoleDisplayName(user.role) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success"> <i class="fas fa-check me-1"></i>Hợp lệ </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-3">
+            <div class="row text-center">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">{{ parsedUsers.length }}</h5>
+                            <p class="card-text">Người dùng hợp lệ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title text-muted">0</h5>
+                            <p class="card-text">Lỗi định dạng</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Đóng</button>
+    </div>
+</ng-template>

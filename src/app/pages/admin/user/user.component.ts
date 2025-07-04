@@ -1,19 +1,24 @@
 import { UserService } from './../../../core/services/api/user.service';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NgbModal, NgbModalRef, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { UserFilter, UserRequest, UserResponse } from '../../../core/models/api/user.model';
 import { ManagerRole } from '../../../core/models/enum/role.model';
 import { Page } from '../../../core/models/types/page.interface';
 import { ToastService } from '../../../core/services/ui/toast.service';
+import * as XLSX from 'xlsx';
 
 @Component({
     selector: 'admin-user-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, NgbModule],
     templateUrl: './user.component.html',
     styleUrl: './user.component.scss',
 })
 export class AdminUserPage implements OnInit {
+    @ViewChild('importModalContent') importModalContent!: TemplateRef<any>;
+    @ViewChild('previewModalContent') previewModalContent!: TemplateRef<any>;
+
     // Search and filter properties
     searchQuery: string = '';
     filter: UserFilter = {
@@ -31,11 +36,17 @@ export class AdminUserPage implements OnInit {
         currentPage: 0,
     };
     isLoading: boolean = false;
+    currentPage: number = 1; // For ngb-pagination (1-based)
 
     // Modal properties
-    showImportModal: boolean = false;
+    private importModalRef: NgbModalRef | null = null;
+    private previewModalRef: NgbModalRef | null = null;
     selectedFile: File | null = null;
     isImporting: boolean = false;
+    isParsingFile: boolean = false;
+
+    // Excel parsing
+    parsedUsers: UserRequest[] = [];
 
     // Role options for filter
     roleOptions: { value: ManagerRole | null; label: string }[] = [
@@ -47,6 +58,7 @@ export class AdminUserPage implements OnInit {
     constructor(
         private readonly userService: UserService,
         private readonly toastService: ToastService,
+        private readonly modalService: NgbModal,
     ) {}
 
     ngOnInit() {
@@ -61,6 +73,7 @@ export class AdminUserPage implements OnInit {
                 this.users = response;
                 this.filter.page = response.currentPage;
                 this.filter.pageSize = response.pageSize;
+                this.currentPage = response.currentPage + 1; // Convert to 1-based
                 this.isLoading = false;
             },
             error: (error) => {
@@ -74,6 +87,7 @@ export class AdminUserPage implements OnInit {
     onSearch() {
         this.searchQuery = this.buildSearchQuery();
         this.filter.page = 0;
+        this.currentPage = 1;
         this.loadUsers();
     }
 
@@ -81,12 +95,15 @@ export class AdminUserPage implements OnInit {
         this.searchQuery = '';
         this.filter.search = '';
         this.filter.role = null;
+        this.filter.page = 0;
+        this.currentPage = 1;
         this.loadUsers();
     }
 
     onRoleChange() {
         this.searchQuery = this.buildSearchQuery();
         this.filter.page = 0;
+        this.currentPage = 1;
         this.loadUsers();
     }
 
@@ -106,94 +123,220 @@ export class AdminUserPage implements OnInit {
     }
 
     // Pagination
-    goToPage(page: number) {
-        if (page >= 0 && page < this.users.totalPages) {
-            this.filter.page = page;
-            this.loadUsers();
-        }
+    onPageChange(page: number) {
+        this.filter.page = page - 1;
+        this.currentPage = page;
+        this.loadUsers();
     }
 
-    getPaginationPages(): number[] {
-        const pages: number[] = [];
-        const maxVisiblePages = 5;
-        const halfVisible = Math.floor(maxVisiblePages / 2);
-
-        let startPage = Math.max(0, this.filter.page - halfVisible);
-        let endPage = Math.min(this.users.totalPages - 1, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(0, endPage - maxVisiblePages + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-
-        return pages;
-    }
-
-    // Import functionality
+    // Modal functionality
     openImportModal() {
-        this.showImportModal = true;
-        this.selectedFile = null;
+        this.resetImportState();
+        this.importModalRef = this.modalService.open(this.importModalContent, {
+            backdrop: 'static',
+            keyboard: false,
+        });
+
+        this.importModalRef.result.catch(() => {
+            this.resetImportState();
+        });
     }
 
-    closeImportModal() {
-        this.showImportModal = false;
-        this.selectedFile = null;
+    showPreviewModal() {
+        if (this.importModalRef) {
+            this.importModalRef.dismiss();
+        }
+
+        this.previewModalRef = this.modalService.open(this.previewModalContent, {
+            size: 'lg',
+            backdrop: 'static',
+        });
+
+        this.previewModalRef.result.catch(() => {
+            // When preview modal is closed, reopen import modal
+            this.openImportModal();
+        });
     }
 
+    private resetImportState() {
+        this.selectedFile = null;
+        // this.parsedUsers = [];
+        this.isImporting = false;
+        this.isParsingFile = false;
+    }
+
+    // File handling
     onFileSelect(event: any) {
         const file = event.target.files[0];
-        if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-            this.selectedFile = file;
-        } else {
-            this.toastService.show('Vui lòng chọn file Excel hợp lệ', 'warning');
-            event.target.value = '';
-        }
-    }
+        if (!file) return;
 
-    importUsers() {
-        if (!this.selectedFile) {
-            this.toastService.show('Vui lòng chọn file để nhập', 'warning');
+        // Validate file type
+        if (!file.type.includes('spreadsheet') && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+            this.toastService.show('Vui lòng chọn file Excel hợp lệ (.xlsx, .xls)', 'warning');
+            event.target.value = '';
             return;
         }
 
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            this.toastService.show('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB', 'warning');
+            event.target.value = '';
+            return;
+        }
+
+        this.selectedFile = file;
+        this.parseExcelFile(file);
+    }
+
+    private parseExcelFile(file: File) {
+        this.isParsingFile = true;
+        this.parsedUsers = [];
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+
+                // Convert to JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length < 2) {
+                    throw new Error('File Excel phải có ít nhất 2 dòng (header + data)');
+                }
+
+                // Get headers
+                const headers = jsonData[0] as string[];
+                const requiredHeaders = ['username', 'fullname', 'email', 'role'];
+
+                // Validate headers
+                const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
+                if (missingHeaders.length > 0) {
+                    throw new Error(`Thiếu các cột: ${missingHeaders.join(', ')}`);
+                }
+
+                // Parse data rows
+                const users: UserRequest[] = [];
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i] as any[];
+                    if (row.length === 0 || row.every((cell) => !cell)) continue; // Skip empty rows
+
+                    const user: UserRequest = {
+                        username: this.getCellValue(row, headers, 'username'),
+                        fullName: this.getCellValue(row, headers, 'fullname'),
+                        email: this.getCellValue(row, headers, 'email'),
+                        role: 'STUDENT',
+                    };
+
+                    // Validate user data
+                    if (this.validateUserData(user)) {
+                        users.push(user);
+                    }
+                }
+
+                this.parsedUsers = users;
+                this.isParsingFile = false;
+
+                if (users.length === 0) {
+                    this.toastService.show('Không tìm thấy dữ liệu hợp lệ nào trong file', 'warning');
+                } else {
+                    this.toastService.show(`Đã phân tích thành công ${users.length} người dùng`, 'success');
+                }
+            } catch (error) {
+                this.isParsingFile = false;
+                console.error('Error parsing Excel file:', error);
+                this.toastService.show(`Lỗi khi phân tích file`, 'error');
+            }
+        };
+
+        reader.onerror = () => {
+            this.isParsingFile = false;
+            this.toastService.show('Lỗi khi đọc file', 'error');
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    private getCellValue(row: any[], headers: string[], columnName: string): string {
+        const index = headers.indexOf(columnName);
+        return index >= 0 ? (row[index] || '').toString().trim() : '';
+    }
+
+    private validateUserData(user: UserRequest): boolean {
+        // Check required fields
+        if (!user.username || !user.fullName || !user.email || !user.role) {
+            return false;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(user.email)) {
+            return false;
+        }
+
+        // Validate role
+        if (!Object.values(ManagerRole).includes(user.role as ManagerRole)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // Import functionality
+    importUsers(modal: NgbModalRef) {
+        if (!this.selectedFile || this.parsedUsers.length === 0) {
+            this.toastService.show('Không có dữ liệu để import', 'warning');
+            return;
+        }
+
+        if (this.isImporting) {
+            return; // Prevent multiple requests
+        }
+
         this.isImporting = true;
-        const users: UserRequest[] = []; // This should be populated with parsed data from the file
-        this.userService.createBatchingUsers(users).subscribe({
-            next: () => {
-                this.toastService.show('Nhập người dùng thành công', 'success');
+
+        this.userService.createBatchingUsers(this.parsedUsers).subscribe({
+            next: (response) => {
+                this.toastService.show(`Import thành công ${this.parsedUsers.length} người dùng`, 'success');
                 this.isImporting = false;
-                this.closeImportModal();
+                modal.close();
+                this.resetImportState();
                 this.loadUsers(); // Reload data
             },
             error: (error) => {
                 this.isImporting = false;
-                this.toastService.show(error.message, 'error');
+                this.toastService.show(`Lỗi khi import: ${error.message}`, 'error');
             },
         });
     }
 
     downloadTemplate() {
-        // Create a simple CSV template
-        const template =
-            'username,fullname,email,role\nexample_user,Nguyễn Văn A,user@example.com,STUDENT\nexample_lecturer,Trần Thị B,lecturer@example.com,LECTURER';
-        const blob = new Blob([template], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'user_import_template.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
+        const headers = ['username', 'fullname', 'email', 'role'];
+        const sampleData = [
+            ['student001', 'Nguyễn Văn A', 'student001@example.com', 'STUDENT'],
+            ['lecturer001', 'Trần Thị B', 'lecturer001@example.com', 'LECTURER'],
+            ['student002', 'Lê Văn C', 'student002@example.com', 'STUDENT'],
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Users');
+
+        // Auto-size columns
+        const colWidths = headers.map((header) => ({ wch: Math.max(header.length, 20) }));
+        ws['!cols'] = colWidths;
+
+        XLSX.writeFile(wb, 'user_import_template.xlsx');
     }
 
     // Utility methods
-    getRoleDisplayName(role: ManagerRole): string {
-        return role === ManagerRole.LECTURER ? 'Giảng viên' : 'Sinh viên';
+    getRoleDisplayName(role: string): string {
+        return role == ManagerRole.LECTURER ? 'Giảng viên' : 'Sinh viên';
     }
 
-    getRoleBadgeClass(role: ManagerRole): string {
-        return role === ManagerRole.LECTURER ? 'badge bg-primary' : 'badge bg-success';
+    getRoleBadgeClass(role: string): string {
+        return role == ManagerRole.LECTURER ? 'badge bg-primary' : 'badge bg-success';
     }
 }
