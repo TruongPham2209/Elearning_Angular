@@ -10,7 +10,7 @@
     <div class="row mb-3">
         <div class="col-12 justify-content-end d-flex">
             <button type="button" class="btn btn-primary btn-download-all" (click)="downloadAllSubmissions()">
-                <i class="fas fa-download me-2"></i>
+                <i class="bi bi-download me-2"></i>
                 Tải xuống tất cả bài nộp
             </button>
         </div>
@@ -72,7 +72,7 @@
                                         class="btn btn-sm btn-outline-info me-2"
                                         (click)="viewSubmissionHistory(submission)"
                                     >
-                                        <i class="fas fa-history me-1"></i>
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>
                                         Lịch sử
                                     </button>
                                     <button
@@ -81,7 +81,7 @@
                                         [disabled]="!submission.fileId"
                                         (click)="downloadFile(submission)"
                                     >
-                                        <i class="fas fa-download me-1"></i>
+                                        <i class="bi bi-download me-1"></i>
                                         Tải file
                                     </button>
                                 </div>
@@ -107,7 +107,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-history me-2"></i>
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
                     Lịch sử nộp bài - {{ selectedStudent?.studentCode }}
                 </h5>
                 <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
@@ -115,15 +115,16 @@
 
             <div class="modal-body" *ngIf="selectedStudent">
                 <div *ngIf="isLoadingHistory" class="text-center text-muted py-4">
-                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                    <p>Đang tải lịch sử nộp bài...</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
 
                 <div
                     *ngIf="getSubmissionHistories(selectedStudent.studentCode) && !isLoadingHistory"
                     class="text-center text-muted py-4"
                 >
-                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <i class="bi bi-inbox fa-3x mb-3"></i>
                     <p>Sinh viên này chưa có lịch sử nộp bài</p>
                 </div>
                 <div *ngIf="getSubmissionHistories(selectedStudent.studentCode).length > 0" class="history-container">
