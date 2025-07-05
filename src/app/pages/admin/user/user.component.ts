@@ -136,31 +136,27 @@ export class AdminUserPage implements OnInit {
             backdrop: 'static',
             keyboard: false,
         });
-
-        this.importModalRef.result.catch(() => {
-            this.resetImportState();
-        });
     }
 
     showPreviewModal() {
-        if (this.importModalRef) {
-            this.importModalRef.dismiss();
-        }
-
+        this.importModalRef?.dismiss();
         this.previewModalRef = this.modalService.open(this.previewModalContent, {
             size: 'lg',
             backdrop: 'static',
         });
+    }
 
-        this.previewModalRef.result.catch(() => {
-            // When preview modal is closed, reopen import modal
-            this.openImportModal();
+    closePreviewModal() {
+        this.previewModalRef?.close();
+        this.importModalRef = this.modalService.open(this.importModalContent, {
+            backdrop: 'static',
+            keyboard: false,
         });
     }
 
     private resetImportState() {
         this.selectedFile = null;
-        // this.parsedUsers = [];
+        this.parsedUsers = [];
         this.isImporting = false;
         this.isParsingFile = false;
     }
@@ -306,6 +302,8 @@ export class AdminUserPage implements OnInit {
             error: (error) => {
                 this.isImporting = false;
                 this.toastService.show(`Lỗi khi import: ${error.message}`, 'error');
+                modal.close();
+                this.resetImportState();
             },
         });
     }

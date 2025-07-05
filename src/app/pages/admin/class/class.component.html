@@ -7,7 +7,12 @@
         </div>
         <div class="col-md-4">
             <!-- Semester Selector -->
-            <select class="form-select" [(ngModel)]="selectedSemesterId" (change)="onSemesterChange()">
+            <select
+                class="form-select"
+                [(ngModel)]="selectedSemesterId"
+                [disabled]="isLoading"
+                (change)="onSemesterChange()"
+            >
                 <option value="" disabled>Chọn học kỳ</option>
                 <option *ngFor="let semester of semesters" [value]="semester.id">
                     {{ semester.name }}

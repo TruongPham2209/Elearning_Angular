@@ -22,6 +22,7 @@
                         id="typeFilter"
                         [(ngModel)]="filter.scope"
                         (change)="onFilterChange()"
+                        [disabled]="isLoading"
                     >
                         <option *ngFor="let type of notificationTypes" [value]="type.scope">
                             {{ type.label }}

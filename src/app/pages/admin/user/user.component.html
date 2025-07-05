@@ -22,7 +22,12 @@
                             [(ngModel)]="filter.search"
                             (keyup.enter)="onSearch()"
                         />
-                        <button class="btn btn-outline-secondary" type="button" (click)="onSearch()">
+                        <button
+                            class="btn btn-outline-secondary"
+                            type="button"
+                            (click)="onSearch()"
+                            [disabled]="isLoading"
+                        >
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
@@ -31,7 +36,13 @@
                 <!-- Role Filter -->
                 <div class="col-md-4">
                     <label for="roleFilter" class="form-label">Lọc theo vai trò</label>
-                    <select id="roleFilter" class="form-select" [(ngModel)]="filter.role" (change)="onRoleChange()">
+                    <select
+                        id="roleFilter"
+                        class="form-select"
+                        [(ngModel)]="filter.role"
+                        (change)="onRoleChange()"
+                        [disabled]="isLoading"
+                    >
                         <option *ngFor="let option of roleOptions" [value]="option.value">
                             {{ option.label }}
                         </option>
@@ -50,7 +61,7 @@
     <div class="alert alert-info" *ngIf="searchQuery">
         <i class="bi bi-info-circle me-2"></i>
         Hiển thị kết quả tìm kiếm cho: <strong>{{ searchQuery }}</strong>
-        <button type="button" class="btn-close float-end" (click)="clearQuery()"></button>
+        <button type="button" class="btn-close float-end" [disabled]="isLoading" (click)="clearQuery()"></button>
     </div>
 
     <!-- Users Table -->
@@ -217,9 +228,15 @@
             (click)="importUsers(modal)"
             [disabled]="!selectedFile || parsedUsers.length === 0 || isImporting"
         >
-            <span *ngIf="isImporting" class="spinner-border spinner-border-sm me-2"></span>
-            <i *ngIf="!isImporting" class="bi bi-cloud-upload me-2"></i>
-            {{ isImporting ? 'Đang import...' : 'Import ' + parsedUsers.length + ' người dùng' }}
+            <div class="text-center px-4" *ngIf="isImporting">
+                <div class="spinner-border text-primary" role="status" style="width: 1.2rem; height: 1.2rem">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <span *ngIf="!isImporting">
+                <i class="bi bi-cloud-upload pt-2 pe-2"></i>
+                {{ 'Import ' + parsedUsers.length + ' người dùng' }}
+            </span>
         </button>
     </div>
 </ng-template>
@@ -228,7 +245,7 @@
 <ng-template #previewModalContent let-modal>
     <div class="modal-header">
         <h4 class="modal-title"><i class="bi bi-eye me-2"></i>Danh sách người dùng sẽ được import</h4>
-        <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+        <button type="button" class="btn-close" (click)="closePreviewModal()"></button>
     </div>
 
     <div class="modal-body">
@@ -267,6 +284,6 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Đóng</button>
+        <button type="button" class="btn btn-secondary" (click)="closePreviewModal()">Đóng</button>
     </div>
 </ng-template>
