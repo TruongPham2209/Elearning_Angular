@@ -231,9 +231,7 @@ export class AdminUserPage implements OnInit {
                     };
 
                     // Validate user data
-                    if (this.validateUserData(user)) {
-                        users.push(user);
-                    }
+                    if (this.validateUserData(user)) users.push(user);
                 }
 
                 this.parsedUsers = users;
