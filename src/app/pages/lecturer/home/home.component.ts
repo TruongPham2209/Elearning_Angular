@@ -32,7 +32,7 @@ export class LecturerHomePage implements OnInit {
         pageSize: 10,
     };
     notifications: Page<NotificationResponse> = {
-        content: [],
+        contents: [],
         totalPages: 1,
         currentPage: 0,
         pageSize: 10,

@@ -164,16 +164,16 @@
                                 <!-- Notifications List -->
                                 <div *ngIf="!isCurrentTabLoading()">
                                     <div
-                                        *ngIf="getCurrentNotifications().content.length === 0"
+                                        *ngIf="getCurrentNotifications().contents.length === 0"
                                         class="text-center text-muted py-4"
                                     >
                                         <i class="bi bi-inbox fs-2 mb-3"></i>
                                         <p>Không có thông báo nào</p>
                                     </div>
 
-                                    <div *ngIf="getCurrentNotifications().content.length > 0">
+                                    <div *ngIf="getCurrentNotifications().contents.length > 0">
                                         <div
-                                            *ngFor="let notification of getCurrentNotifications().content"
+                                            *ngFor="let notification of getCurrentNotifications().contents"
                                             class="notification-item border rounded p-3 mb-3"
                                             (click)="openNotificationDetail(notification)"
                                             role="button"

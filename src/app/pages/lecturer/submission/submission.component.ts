@@ -22,7 +22,7 @@ export class LecturerSubmissionPage implements OnInit {
 
     assignment!: AssignmentResponse;
     studentSubmissions: Page<SubmissionResponse> = {
-        content: [],
+        contents: [],
         currentPage: 0,
         pageSize: 10,
         totalPages: 1,

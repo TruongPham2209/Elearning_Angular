@@ -17,14 +17,14 @@ export class WebHomePage implements OnInit {
 
     // Notification data
     systemNotifications: Page<NotificationResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         currentPage: 0,
         pageSize: 10,
     };
 
     studentNotifications: Page<NotificationResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         currentPage: 0,
         pageSize: 10,
@@ -117,7 +117,7 @@ export class WebHomePage implements OnInit {
         try {
             // Mock data - replace with actual API call
             const mockNotifications: Page<NotificationResponse> = {
-                content: isSystem
+                contents: isSystem
                     ? [
                           //   {
                           //       id: 'sys1',

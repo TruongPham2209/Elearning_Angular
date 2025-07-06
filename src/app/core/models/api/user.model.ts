@@ -2,7 +2,7 @@ import { ManagerRole } from './../enum/role.model';
 interface UserRequest {
     role: 'LECTURER' | 'STUDENT';
     username: string;
-    fullName: string;
+    fullname: string;
     email: string;
 }
 

@@ -62,7 +62,7 @@
                     </tbody>
                     <!-- Data Rows -->
                     <tbody *ngIf="!isLoading">
-                        <tr *ngFor="let notification of notifications.content">
+                        <tr *ngFor="let notification of notifications.contents">
                             <td>
                                 <div
                                     class="fw-bold text-truncate"
@@ -110,7 +110,7 @@
                             </td>
                         </tr>
                         <!-- Empty State -->
-                        <tr *ngIf="notifications.content.length === 0">
+                        <tr *ngIf="notifications.contents.length === 0">
                             <td colspan="5" class="text-center py-5">
                                 <div class="text-muted">
                                     <i class="bi bi-bell-slash display-4 d-block mb-3"></i>

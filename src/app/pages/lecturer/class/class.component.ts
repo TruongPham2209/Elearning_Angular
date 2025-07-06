@@ -13,7 +13,6 @@ import { AnnouncementService } from '../../../core/services/api/announcement.ser
 import { AssignmentService } from '../../../core/services/api/assignment.service';
 import { DocumentService } from '../../../core/services/api/document.service';
 import { ToastService } from '../../../core/services/ui/toast.service';
-import { mockAnnouncements, mockLessions } from '../../../core/utils/mockdata.util';
 import { LessionService } from './../../../core/services/api/lession.service';
 @Component({
     selector: 'lecturer-class-page',
@@ -416,7 +415,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
             })
             .subscribe({
                 next: (announcements) => {
-                    this.announcements = announcements.content;
+                    this.announcements = announcements.contents;
                     this.isLoadingAnnouncements = false;
                 },
                 error: (error) => {

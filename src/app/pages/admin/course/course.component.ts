@@ -20,7 +20,7 @@ export class AdminCoursePage implements OnInit {
     }
 
     courses: Page<CourseResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         pageSize: 20,
         currentPage: 0,
@@ -177,11 +177,11 @@ export class AdminCoursePage implements OnInit {
                     'success',
                 );
                 if (!this.isEditMode) {
-                    this.courses.content.unshift(course);
+                    this.courses.contents.unshift(course);
                 } else {
-                    const index = this.courses.content.findIndex((c) => c.id === course.id);
+                    const index = this.courses.contents.findIndex((c) => c.id === course.id);
                     if (index !== -1) {
-                        this.courses.content[index] = course;
+                        this.courses.contents[index] = course;
                     }
                 }
                 this.closeModal();
@@ -203,7 +203,7 @@ export class AdminCoursePage implements OnInit {
         this.courseService.deleteById(this.courseToDelete.id).subscribe({
             next: () => {
                 this.toastService.show('Xóa khóa học thành công', 'success');
-                this.courses.content = this.courses.content.filter((c) => c.id !== this.courseToDelete?.id);
+                this.courses.contents = this.courses.contents.filter((c) => c.id !== this.courseToDelete?.id);
                 this.closeDeleteModal();
                 this.isLoading = false;
             },

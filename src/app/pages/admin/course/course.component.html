@@ -47,7 +47,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr *ngFor="let course of courses.content; let i = index">
+                                <tr *ngFor="let course of courses.contents; let i = index">
                                     <td>{{ courses.currentPage * courses.pageSize + i + 1 }}</td>
                                     <td>{{ course.name }}</td>
                                     <td>{{ course.sessions }}</td>
@@ -81,7 +81,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr *ngIf="courses.content.length === 0 && !isLoading">
+                                <tr *ngIf="courses.contents.length === 0 && !isLoading">
                                     <td colspan="6" class="text-center text-muted">
                                         Chưa có khóa học nào trong học kỳ này
                                     </td>

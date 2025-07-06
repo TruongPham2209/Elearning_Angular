@@ -98,9 +98,9 @@
                     </div>
                 </div>
                 <div class="card-body" [class.d-none]="!showAnnouncementDropdown">
-                    <div *ngIf="announcements.content.length === 0" class="text-muted">Chưa có thông báo nào</div>
+                    <div *ngIf="announcements.contents.length === 0" class="text-muted">Chưa có thông báo nào</div>
 
-                    <div *ngFor="let announcement of announcements.content" class="card mb-2">
+                    <div *ngFor="let announcement of announcements.contents" class="card mb-2">
                         <div class="card-body">
                             <h6 class="card-title">{{ announcement.title }}</h6>
                             <p class="card-text">

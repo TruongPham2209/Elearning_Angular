@@ -42,7 +42,7 @@
                     </tbody>
 
                     <tbody *ngIf="!isLoadingSubmissions">
-                        <tr *ngFor="let submission of studentSubmissions.content">
+                        <tr *ngFor="let submission of studentSubmissions.contents">
                             <td class="text-center fw-bold">{{ submission.studentCode }}</td>
                             <td class="text-center">
                                 <span class="badge" [ngClass]="getStatusBadgeClass(submission.isSubmitted)">

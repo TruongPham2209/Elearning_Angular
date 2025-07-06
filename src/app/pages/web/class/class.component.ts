@@ -18,7 +18,7 @@ import { Page } from '../../../core/models/types/page.interface';
 export class WebClassPage implements OnInit {
     lessions: LessionResponse[] = [];
     announcements: Page<AnnouncementResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         currentPage: 0,
         pageSize: 10,

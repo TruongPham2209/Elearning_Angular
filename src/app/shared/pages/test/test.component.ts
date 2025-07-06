@@ -12,7 +12,7 @@ import { Page } from '../../../core/models/types/page.interface';
 })
 export class TestComponent implements OnInit {
     pageData: Page<string> = {
-        content: [],
+        contents: [],
         totalPages: 10,
         currentPage: 0,
         pageSize: 10,
@@ -24,7 +24,7 @@ export class TestComponent implements OnInit {
 
     getPage(page: number) {
         this.pageData = {
-            content: Array.from({ length: 10 }, (_, i) => `Item ${i + 1 + page * 10}`),
+            contents: Array.from({ length: 10 }, (_, i) => `Item ${i + 1 + page * 10}`),
             totalPages: 10,
             pageSize: 10,
             currentPage: page,

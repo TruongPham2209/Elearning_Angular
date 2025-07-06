@@ -30,7 +30,7 @@ export class AdminUserPage implements OnInit {
 
     // Data properties
     users: Page<UserResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         pageSize: 0,
         currentPage: 0,
@@ -70,6 +70,7 @@ export class AdminUserPage implements OnInit {
         this.isLoading = true;
         this.userService.getAll(this.filter).subscribe({
             next: (response) => {
+                console.info('Loaded users:', response);
                 this.users = response;
                 this.filter.page = response.currentPage;
                 this.filter.pageSize = response.pageSize;
@@ -221,9 +222,12 @@ export class AdminUserPage implements OnInit {
 
                     const user: UserRequest = {
                         username: this.getCellValue(row, headers, 'username'),
-                        fullName: this.getCellValue(row, headers, 'fullname'),
+                        fullname: this.getCellValue(row, headers, 'fullname'),
                         email: this.getCellValue(row, headers, 'email'),
-                        role: 'STUDENT',
+                        role:
+                            this.getCellValue(row, headers, 'role') === 'LECTURER'
+                                ? ManagerRole.LECTURER
+                                : ManagerRole.STUDENT,
                     };
 
                     // Validate user data
@@ -260,7 +264,7 @@ export class AdminUserPage implements OnInit {
 
     private validateUserData(user: UserRequest): boolean {
         // Check required fields
-        if (!user.username || !user.fullName || !user.email || !user.role) {
+        if (!user.username || !user.fullname || !user.email || !user.role) {
             return false;
         }
 
@@ -292,7 +296,7 @@ export class AdminUserPage implements OnInit {
         this.isImporting = true;
 
         this.userService.createBatchingUsers(this.parsedUsers).subscribe({
-            next: (response) => {
+            next: () => {
                 this.toastService.show(`Import thành công ${this.parsedUsers.length} người dùng`, 'success');
                 this.isImporting = false;
                 modal.close();

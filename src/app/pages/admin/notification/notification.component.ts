@@ -39,7 +39,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
 
     // Data properties
     notifications: Page<NotificationResponse> = {
-        content: [],
+        contents: [],
         totalPages: 0,
         currentPage: 0,
         pageSize: 10,
@@ -187,7 +187,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
             this.notificationService.delete(this.notificationToDelete.id).subscribe({
                 next: () => {
                     this.toastService.show('Thông báo đã được xóa thành công.', 'success');
-                    this.notifications.content = this.notifications.content.filter(
+                    this.notifications.contents = this.notifications.contents.filter(
                         (n) => n.id !== this.notificationToDelete?.id,
                     );
                     this.notificationToDelete = null;
@@ -215,7 +215,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
         this.notificationService.create(this.newNotification).subscribe({
             next: (response) => {
                 this.toastService.show('Thông báo đã được tạo thành công.', 'success');
-                this.notifications.content.unshift(response); // Add to the beginning of the list
+                this.notifications.contents.unshift(response); // Add to the beginning of the list
                 this.resetForm();
             },
             error: (error) => {

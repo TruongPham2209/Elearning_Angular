@@ -299,7 +299,7 @@ export class AdminClassPage implements OnInit {
         };
         this.userService.getAll(filter).subscribe({
             next: (instructors) => {
-                this.instructors = instructors.content || [];
+                this.instructors = instructors.contents || [];
             },
             error: (error) => {
                 console.error('Lỗi khi tải danh sách giảng viên:', error);
