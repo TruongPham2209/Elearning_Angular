@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NotificationResponse } from '../../../core/models/api/notification.model';
+import { NotificationFilter, NotificationResponse } from '../../../core/models/api/notification.model';
 import { SemesterWithClassesResponse } from '../../../core/models/api/semester.model';
 import { Page } from '../../../core/models/types/page.interface';
 import { NotificationType } from '../../../core/models/enum/notification.model';
+import { NotificationService } from '../../../core/services/api/notification.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { ClassService } from '../../../core/services/api/class.service';
 
 @Component({
     selector: 'web-home-page',
@@ -16,153 +19,85 @@ export class WebHomePage implements OnInit {
     semesters: SemesterWithClassesResponse[] = [];
 
     // Notification data
-    systemNotifications: Page<NotificationResponse> = {
+    notifications: Page<NotificationResponse> = {
         contents: [],
         totalPages: 0,
         currentPage: 0,
         pageSize: 10,
     };
 
-    studentNotifications: Page<NotificationResponse> = {
-        contents: [],
-        totalPages: 0,
-        currentPage: 0,
+    notificationFilter: NotificationFilter = {
+        scope: NotificationType.SYSTEM,
+        page: 0,
         pageSize: 10,
     };
 
-    activeNotificationTab: NotificationType = NotificationType.SYSTEM;
+    activeNotificationTab: NotificationType.SYSTEM | NotificationType.STUDENT_ONLY = NotificationType.SYSTEM;
     NotificationType = NotificationType;
 
     // Loading states
-    loading = true;
-    loadingSystemNotifications = false;
-    loadingStudentNotifications = false;
+    loadingClass = false;
+    loadingNotifications = false;
 
     // Selected notification for modal
     selectedNotification: NotificationResponse | null = null;
 
-    constructor(private router: Router) {}
+    constructor(
+        private readonly router: Router,
+        private readonly notificationService: NotificationService,
+        private readonly toastService: ToastService,
+        private readonly classService: ClassService,
+    ) {}
 
     ngOnInit(): void {
         this.loadData();
     }
 
     private async loadData(): Promise<void> {
-        this.loading = true;
-        try {
-            await Promise.all([
-                this.loadSemesters(),
-                this.loadNotifications(NotificationType.SYSTEM, 0),
-                this.loadNotifications(NotificationType.STUDENT_ONLY, 0),
-            ]);
-        } finally {
-            this.loading = false;
-        }
+        await Promise.all([this.loadClasses(), this.loadNotifications()]);
     }
 
-    private async loadSemesters(): Promise<void> {
-        // Mock data - replace with actual API call
-        this.semesters = [
-            {
-                id: '1',
-                title: 'Học kỳ 1 - 2024-2025',
-                classes: [
-                    {
-                        id: 'class1',
-                        name: 'Lập trình Web nâng cao',
-                        room: 'A101',
-                        schedule: 'Thứ 2, 7:30-9:30',
-                        lecturerId: 'lecturer1',
-                        lecturerName: 'Nguyễn Văn A',
-                        lecturerEmail: 'nguyenvana@example.com',
-                    },
-                    {
-                        id: 'class2',
-                        name: 'Cơ sở dữ liệu',
-                        room: 'B202',
-                        schedule: 'Thứ 4, 13:30-15:30',
-                        lecturerId: 'lecturer2',
-                        lecturerName: 'Trần Thị B',
-                        lecturerEmail: 'tranthib@example.com',
-                    },
-                ],
+    private async loadClasses(): Promise<void> {
+        if (this.loadingClass) {
+            return;
+        }
+
+        this.loadingClass = true;
+        this.classService.getClasses().subscribe({
+            next: (semesters) => {
+                this.semesters = semesters;
+                this.loadingClass = false;
             },
-            {
-                id: '2',
-                title: 'Học kỳ 2 - 2024-2025',
-                classes: [
-                    {
-                        id: 'class3',
-                        name: 'Phát triển ứng dụng di động',
-                        room: 'C303',
-                        schedule: 'Thứ 3, 9:30-11:30',
-                        lecturerId: 'lecturer3',
-                        lecturerName: 'Lê Văn C',
-                        lecturerEmail: 'levanc@example.com',
-                    },
-                ],
+            error: (error) => {
+                console.error('Error loading classes:', error);
+                this.toastService.show('An error occurred while loading classes. Please try again later.', 'error');
+                this.loadingClass = false;
             },
-        ];
+        });
     }
 
-    private async loadNotifications(type: NotificationType, page: number): Promise<void> {
-        const isSystem = type === NotificationType.SYSTEM;
-
-        if (isSystem) {
-            this.loadingSystemNotifications = true;
-        } else {
-            this.loadingStudentNotifications = true;
+    private async loadNotifications(): Promise<void> {
+        if (this.loadingNotifications) {
+            return;
         }
 
-        try {
-            // Mock data - replace with actual API call
-            const mockNotifications: Page<NotificationResponse> = {
-                contents: isSystem
-                    ? [
-                          //   {
-                          //       id: 'sys1',
-                          //       title: 'Thông báo bảo trì hệ thống',
-                          //       createdAt: new Date('2024-06-25'),
-                          //       createdBy: 'Quản trị viên',
-                          //   },
-                          //   {
-                          //       id: 'sys2',
-                          //       title: 'Cập nhật chính sách học tập mới',
-                          //       createdAt: new Date('2024-06-24'),
-                          //       createdBy: 'Phòng Đào tạo',
-                          //   },
-                      ]
-                    : [
-                          //   {
-                          //       id: 'stu1',
-                          //       title: 'Thông báo nộp bài tập lớn môn Lập trình Web',
-                          //       createdAt: new Date('2024-06-25'),
-                          //       createdBy: 'Nguyễn Văn A',
-                          //   },
-                          //   {
-                          //       id: 'stu2',
-                          //       title: 'Lịch thi giữa kỳ môn Cơ sở dữ liệu',
-                          //       createdAt: new Date('2024-06-23'),
-                          //       createdBy: 'Trần Thị B',
-                          //   },
-                      ],
-                totalPages: 3,
-                currentPage: page,
-                pageSize: 10,
-            };
-
-            if (isSystem) {
-                this.systemNotifications = mockNotifications;
-            } else {
-                this.studentNotifications = mockNotifications;
-            }
-        } finally {
-            if (isSystem) {
-                this.loadingSystemNotifications = false;
-            } else {
-                this.loadingStudentNotifications = false;
-            }
-        }
+        this.loadingNotifications = true;
+        this.notificationService.getAll(this.notificationFilter).subscribe({
+            next: (notifications) => {
+                this.notifications = notifications;
+                this.notificationFilter.page = notifications.currentPage;
+                this.notificationFilter.pageSize = notifications.pageSize;
+                this.loadingNotifications = false;
+            },
+            error: (error) => {
+                console.error('Error loading notifications:', error);
+                this.toastService.show(
+                    'An error occurred while loading notifications. Please try again later.',
+                    'error',
+                );
+                this.loadingNotifications = false;
+            },
+        });
     }
 
     // Navigation methods
@@ -171,24 +106,34 @@ export class WebHomePage implements OnInit {
     }
 
     // Notification methods
-    switchNotificationTab(type: NotificationType): void {
+    switchNotificationTab(type: NotificationType.SYSTEM | NotificationType.STUDENT_ONLY): void {
+        if (this.activeNotificationTab === type) {
+            return; // No need to switch if already on the same tab
+        }
+
+        if (this.loadingNotifications) {
+            this.toastService.show('Notifications are currently loading. Please wait.', 'info');
+            return;
+        }
+
         this.activeNotificationTab = type;
-    }
-
-    getCurrentNotifications(): Page<NotificationResponse> {
-        return this.activeNotificationTab === NotificationType.SYSTEM
-            ? this.systemNotifications
-            : this.studentNotifications;
-    }
-
-    isCurrentTabLoading(): boolean {
-        return this.activeNotificationTab === NotificationType.SYSTEM
-            ? this.loadingSystemNotifications
-            : this.loadingStudentNotifications;
+        this.notificationFilter.scope = type;
+        this.notificationFilter.page = 0;
+        this.loadNotifications();
     }
 
     loadNotificationPage(page: number): void {
-        this.loadNotifications(this.activeNotificationTab, page);
+        if (this.loadingNotifications) {
+            this.toastService.show('Notifications are currently loading. Please wait.', 'info');
+            return;
+        }
+
+        if (page < 0 || page >= this.notifications.totalPages) {
+            this.toastService.show('Invalid page number.', 'error');
+            return;
+        }
+        this.notificationFilter.page = page;
+        this.loadNotifications();
     }
 
     openNotificationDetail(notification: NotificationResponse): void {
