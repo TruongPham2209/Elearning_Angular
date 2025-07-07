@@ -11,7 +11,7 @@ export class CourseService {
     constructor(private readonly fetchingService: BaseFetchingService) {}
 
     getById(id: string): Observable<CourseResponse> {
-        return this.fetchingService.get(`/api/courses/${id}/`);
+        return this.fetchingService.get(`/api/courses/${id}`);
     }
 
     getCourses(filter: CourseFilter): Observable<Page<CourseResponse>> {
@@ -20,13 +20,13 @@ export class CourseService {
 
     save(req: CourseForm): Observable<CourseResponse> {
         if (req.id.trim()) {
-            return this.fetchingService.put(`/api/courses/${req.id}/`, req);
+            return this.fetchingService.put(`/api/courses/${req.id}`, req);
         }
 
         return this.fetchingService.post(`/api/courses/`, req);
     }
 
     deleteById(id: string): Observable<void> {
-        return this.fetchingService.delete(`/api/courses/${id}/`);
+        return this.fetchingService.delete(`/api/courses/${id}`);
     }
 }

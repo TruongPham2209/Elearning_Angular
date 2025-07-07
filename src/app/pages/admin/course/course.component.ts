@@ -131,7 +131,7 @@ export class AdminCoursePage implements OnInit {
             this.currentCourseForm.name.trim() === '' ||
             this.currentCourseForm.shortDescription.trim() === '' ||
             this.currentCourseForm.sessions < 1 ||
-            this.currentCourseForm.sessions > 20 ||
+            this.currentCourseForm.sessions > 50 ||
             this.isLoading
         );
     }

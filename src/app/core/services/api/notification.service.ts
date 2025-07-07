@@ -11,11 +11,11 @@ export class NotificationService {
     constructor(private readonly fetchingService: BaseFetchingService) {}
 
     create(req: NotificationRequest): Observable<NotificationResponse> {
-        return this.fetchingService.post('/api/notifications', req);
+        return this.fetchingService.post('/api/notifications/', req);
     }
 
     delete(id: string): Observable<void> {
-        return this.fetchingService.delete(`/api/notifications/${id}`);
+        return this.fetchingService.delete(`/api/notifications/`, { ids: [id] });
     }
 
     getAll(filter: NotificationFilter): Observable<Page<NotificationResponse>> {

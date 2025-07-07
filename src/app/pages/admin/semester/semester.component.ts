@@ -18,6 +18,8 @@ export class AdminSemesterPage implements OnInit {
 
     showModal = false;
     isEditMode = false;
+    isEditing = false;
+
     currentSemesterForm: SemesterForm = {
         id: '',
         name: '',
@@ -37,7 +39,6 @@ export class AdminSemesterPage implements OnInit {
             },
             error: (error) => {
                 console.error('Error fetching semesters:', error);
-                // alert('Không thể tải danh sách học kỳ. Vui lòng thử lại sau.');
                 this.toastService.show('Không thể tải danh sách học kỳ. Vui lòng thử lại sau.', 'error');
             },
         });
@@ -73,6 +74,8 @@ export class AdminSemesterPage implements OnInit {
             startDate: new Date(),
             endDate: new Date(),
         };
+        this.isEditMode = false;
+        this.isEditing = false;
     }
 
     getTodayString(): string {
@@ -102,6 +105,12 @@ export class AdminSemesterPage implements OnInit {
             return;
         }
 
+        if (this.isEditing) {
+            this.toastService.show('Đang lưu dữ liệu, vui lòng đợi.', 'info');
+            return;
+        }
+
+        this.isEditing = true;
         this.currentSemesterForm.id = this.isEditMode ? this.currentSemesterForm.id : '';
         this.semesterService.save(this.currentSemesterForm).subscribe({
             next: (response) => {

@@ -3,18 +3,18 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ClassForm, ClassResponse } from '../../../core/models/api/class.model';
 import { CourseResponse } from '../../../core/models/api/course.model';
 import { SemesterResponse } from '../../../core/models/api/semester.model';
 import { UserFilter, UserResponse } from '../../../core/models/api/user.model';
-import { UserService } from '../../../core/services/api/user.service';
-import { mockClasses, mockCourses, mockSemesters, mockUsers } from '../../../core/utils/mockdata.util';
-import { SemesterService } from './../../../core/services/api/semester.service';
+import { ManagerRole } from '../../../core/models/enum/role.model';
 import { ClassService } from '../../../core/services/api/class.service';
 import { CourseService } from '../../../core/services/api/course.service';
-import { ManagerRole } from '../../../core/models/enum/role.model';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { UserService } from '../../../core/services/api/user.service';
 import { ToastService } from '../../../core/services/ui/toast.service';
+import * as FileUtil from '../../../core/utils/file.util';
+import { SemesterService } from './../../../core/services/api/semester.service';
 
 @Component({
     selector: 'admin-class-page',
@@ -30,6 +30,7 @@ export class AdminClassPage implements OnInit {
     isLoading: boolean = false;
     isCreating: boolean = false;
     isDeleting: boolean = false;
+    isImporting: boolean = false;
 
     currentCourse: CourseResponse | null = null;
     classToDelete: ClassResponse | null = null;
@@ -103,7 +104,6 @@ export class AdminClassPage implements OnInit {
                     this.newClass.courseId = courseId;
 
                     this.loadSemesters();
-                    this.loadClasses();
 
                     this.searchSubject
                         .pipe(
@@ -126,14 +126,13 @@ export class AdminClassPage implements OnInit {
     }
 
     // Xử lý sự kiện
-    onDaySelectionChange(event: any) {
-        const dayValue = +event.target.value;
-        if (!event.target.checked) {
-            this.newClass.daysInWeek = this.newClass.daysInWeek.filter((day) => day !== dayValue);
-            return;
-        }
-        // Thêm nếu được chọn
-        if (!this.newClass.daysInWeek.includes(dayValue)) {
+    onDaySelectionChange(dayValue: number) {
+        const index = this.newClass.daysInWeek.indexOf(dayValue);
+        if (index > -1) {
+            // Nếu đã chọn -> Bỏ chọn
+            this.newClass.daysInWeek.splice(index, 1);
+        } else {
+            // Nếu chưa chọn -> Thêm vào
             this.newClass.daysInWeek.push(dayValue);
         }
     }
@@ -164,20 +163,50 @@ export class AdminClassPage implements OnInit {
             !this.selectedInstructor ||
             this.newClass.daysInWeek.length === 0 ||
             !this.selectedFile ||
-            this.isCreating
+            this.isCreating ||
+            this.isImporting ||
+            !this.selectInstructor
         );
     }
 
-    onFileSelected(event: any): void {
+    async onFileSelected(event: any) {
+        if (this.isImporting) {
+            this.toastService.show('Đang xử lý tệp. Vui lòng đợi.', 'warning');
+            return;
+        }
+
         const file = event.target.files[0];
-        if (!file || file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+        if (!file) return;
+
+        if (file.size === 0) {
+            this.toastService.show('File rỗng. Vui lòng chọn file khác.', 'warning');
             event.target.value = '';
-            this.selectedFile = null;
-            this.toastService.show('Vui lòng chọn tệp Excel hợp lệ (.xlsx) để tải lên danh sách sinh viên.', 'warning');
+            return;
+        }
+
+        // Validate file type
+        if (!file.type.includes('spreadsheet') && !file.name.match(/\.(xlsx|xls)$/)) {
+            this.toastService.show('Vui lòng chọn file Excel hợp lệ (.xlsx, .xls)', 'warning');
+            event.target.value = '';
             return;
         }
 
         this.selectedFile = file;
+        this.isImporting = true;
+        await FileUtil.parseExcelFileToStudentCose(file)
+            .then((studentCodes) => {
+                this.newClass.studentCodes = studentCodes;
+                this.isImporting = false;
+                this.toastService.show('Đã tải tệp thành công. Bạn có thể tạo lớp học ngay bây giờ.', 'success');
+            })
+            .catch((error) => {
+                this.selectedFile = null;
+                this.newClass.studentCodes = [];
+                event.target.value = '';
+                console.error('Lỗi khi phân tích tệp:', error);
+                this.isImporting = false;
+                this.toastService.show('Đã xảy ra lỗi khi phân tích tệp. Vui lòng thử lại.', 'error');
+            });
     }
 
     formatFileSize(bytes: number): string {
@@ -230,9 +259,16 @@ export class AdminClassPage implements OnInit {
             return;
         }
 
+        if (this.isCreating) {
+            this.toastService.show('Đang tạo lớp học. Vui lòng đợi.', 'warning');
+            return;
+        }
+
+        console.log('Selecting instructor:', this.selectedInstructor);
+        this.newClass.lecturerId = this.selectedInstructor?.id || '';
         this.isCreating = true;
         this.classService.createClass(this.newClass).subscribe({
-            next: (response) => {
+            next: () => {
                 this.toastService.show('Lớp học đã được tạo thành công.', 'success');
                 this.resetFormAndCloseModal();
             },
@@ -253,6 +289,8 @@ export class AdminClassPage implements OnInit {
         this.selectedInstructor = instructor;
         this.instructorSearchTerm = '';
         this.instructors = [];
+
+        console.log('Selected instructor:', this.selectedInstructor);
     }
 
     clearSelectedInstructor(): void {
@@ -264,12 +302,11 @@ export class AdminClassPage implements OnInit {
         this.classService.getClassesByFilter(this.newClass.courseId, this.selectedSemesterId).subscribe({
             next: (classes) => {
                 this.classes = classes;
-                console.log('Classes loaded:', this.classes);
                 this.isLoading = false;
             },
             error: (error) => {
                 console.error('Lỗi khi tải danh sách lớp học:', error);
-                alert('Đã xảy ra lỗi khi tải danh sách lớp học. Vui lòng thử lại sau.');
+                this.toastService.show('Đã xảy ra lỗi khi tải danh sách lớp học. Vui lòng thử lại sau.', 'error');
                 this.isLoading = false;
             },
         });
@@ -282,6 +319,7 @@ export class AdminClassPage implements OnInit {
                 if (this.semesters.length > 0) {
                     this.selectedSemesterId = this.semesters[0].id;
                 }
+                this.loadClasses();
             },
             error: (error) => {
                 console.error('Lỗi khi tải danh sách học kỳ:', error);

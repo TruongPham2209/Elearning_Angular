@@ -82,9 +82,7 @@
                                     </td>
                                 </tr>
                                 <tr *ngIf="courses.contents.length === 0 && !isLoading">
-                                    <td colspan="6" class="text-center text-muted">
-                                        Chưa có khóa học nào trong học kỳ này
-                                    </td>
+                                    <td colspan="6" class="text-center text-muted">Chưa có khóa học nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -213,12 +211,12 @@
                                 name="sessions"
                                 required
                                 min="1"
-                                max="20"
-                                placeholder="Nhập số buổi học (1-20)"
+                                max="50"
+                                placeholder="Nhập số buổi học (1-50)"
                             />
                         </div>
                         <div class="form-text text-muted mt-2">
-                            <i class="bi bi-info-circle me-1 text-info"></i>Số buổi học từ 1 đến 20
+                            <i class="bi bi-info-circle me-1 text-info"></i>Số buổi học từ 1 đến 50
                         </div>
                     </div>
 

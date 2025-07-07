@@ -8,7 +8,7 @@ interface UserRequest {
 
 interface UserResponse {
     id: string;
-    username?: string;
+    username: string;
     fullname: string;
     email: string;
     role: ManagerRole;

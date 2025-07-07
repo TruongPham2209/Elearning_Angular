@@ -92,7 +92,7 @@
                             </td>
                         </tr>
                         <tr *ngIf="classes.length === 0">
-                            <td colspan="5" class="text-center py-4">
+                            <td colspan="7" class="text-center py-4">
                                 <div class="text-muted">
                                     <i class="bi bi-inbox display-4 d-block mb-3"></i>
                                     <p>Chưa có lớp học nào</p>
@@ -106,88 +106,129 @@
     </div>
 </div>
 
-<!-- Create Class Modal -->
+<!-- Create Class Modal - Improved -->
 <ng-template #createClassModal let-modal>
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="createClassModalLabel">Tạo lớp mới</h5>
-            <button type="button" class="btn-close" (click)="modal.dismiss('cancel')" aria-label="Close"></button>
+    <div class="modal-content border-0 shadow-lg">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-semibold" id="createClassModalLabel">
+                <i class="bi bi-people-fill me-2"></i>Tạo lớp mới
+            </h5>
+            <button
+                type="button"
+                class="btn-close btn-close-white"
+                (click)="modal.dismiss('cancel')"
+                aria-label="Close"
+            ></button>
         </div>
-        <div class="modal-body">
+
+        <div class="modal-body p-4">
             <form #createForm="ngForm">
-                <div class="mb-3">
-                    <label for="semester" class="form-label">Học kì <span class="text-danger">*</span></label>
-                    <select
-                        class="form-select"
-                        id="semester"
-                        [(ngModel)]="newClass.semesterId"
-                        name="semester"
-                        required
-                    >
-                        <option value="" disabled>Chọn học kỳ</option>
-                        <option *ngFor="let semester of semesters" [value]="semester.id">
-                            {{ semester.name }}
-                        </option>
-                    </select>
+                <!-- Semester Selection -->
+                <div class="mb-4">
+                    <label for="semester" class="form-label fw-medium">
+                        <i class="bi bi-calendar3 me-1 text-primary"></i>Học kì <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-list-check text-primary"></i>
+                        </span>
+                        <select
+                            class="form-select form-select-lg border-primary border-end-1"
+                            id="semester"
+                            [(ngModel)]="newClass.semesterId"
+                            name="semester"
+                            required
+                        >
+                            <option value="" disabled selected>Chọn học kỳ</option>
+                            <option *ngFor="let semester of semesters" [value]="semester.id">
+                                {{ semester.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="className" class="form-label">Tên lớp <span class="text-danger">*</span></label>
-                    <input
-                        type="text"
-                        class="form-control"
-                        id="className"
-                        [(ngModel)]="newClass.name"
-                        name="className"
-                        required
-                        placeholder="Nhập tên lớp học"
-                    />
+                <!-- Class Name -->
+                <div class="mb-4">
+                    <label for="className" class="form-label fw-medium">
+                        <i class="bi bi-tag me-1 text-primary"></i>Tên lớp <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-pencil text-primary"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg border-primary border-end-1"
+                            id="className"
+                            [(ngModel)]="newClass.name"
+                            name="className"
+                            required
+                            placeholder="Nhập tên lớp học"
+                        />
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="classRoom" class="form-label">Phòng học <span class="text-danger">*</span></label>
-                    <input
-                        type="text"
-                        class="form-control"
-                        id="classRoom"
-                        [(ngModel)]="newClass.room"
-                        name="classRoom"
-                        required
-                        placeholder="Phòng học (ví dụ: A101, B202, ...)"
-                    />
+                <!-- Classroom -->
+                <div class="mb-4">
+                    <label for="classRoom" class="form-label fw-medium">
+                        <i class="bi bi-building me-1 text-primary"></i>Phòng học <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-door-open text-primary"></i>
+                        </span>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg border-primary border-end-1"
+                            id="classRoom"
+                            [(ngModel)]="newClass.room"
+                            name="classRoom"
+                            required
+                            placeholder="Phòng học (ví dụ: A101, B202, ...)"
+                        />
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="classSchedule" class="form-label">Ca dạy <span class="text-danger">*</span></label>
-                    <select
-                        class="form-select"
-                        id="classSchedule"
-                        [(ngModel)]="newClass.shift"
-                        name="classSchedule"
-                        required
-                    >
-                        <option value="">Chọn ca dạy</option>
-                        <option *ngFor="let shift of shifts" [value]="shift.value">
-                            {{ shift.title }}
-                        </option>
-                    </select>
+                <!-- Class Schedule -->
+                <div class="mb-4">
+                    <label for="classSchedule" class="form-label fw-medium">
+                        <i class="bi bi-clock me-1 text-primary"></i>Ca dạy <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-alarm text-primary"></i>
+                        </span>
+                        <select
+                            class="form-select form-select-lg border-primary border-end-1"
+                            id="classSchedule"
+                            [(ngModel)]="newClass.shift"
+                            name="classSchedule"
+                            required
+                        >
+                            <option value="" disabled selected>Chọn ca dạy</option>
+                            <option *ngFor="let shift of shifts" [value]="shift.value">
+                                {{ shift.title }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Chọn các thứ trong tuần -->
-                <div class="mb-3">
-                    <label class="form-label">Chọn các ngày trong tuần</label>
-                    <div class="row">
-                        <div class="col-4 mb-2" *ngFor="let day of weekDays">
-                            <div class="form-check">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    [value]="day.value"
-                                    [checked]="newClass.daysInWeek.includes(day.value)"
-                                    (change)="onDaySelectionChange($event)"
-                                    id="day{{ day.value }}"
-                                />
-                                <label class="form-check-label" [for]="'day' + day.value">
+                <!-- Week Days Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">
+                        <i class="bi bi-calendar-week me-1 text-primary"></i>Ngày học trong tuần
+                    </label>
+                    <div class="row g-2">
+                        <div class="col-4" *ngFor="let day of weekDays">
+                            <div
+                                class="form-check card p-2 flex-row"
+                                [ngClass]="{ 'border border-primary': newClass.daysInWeek.includes(day.value) }"
+                                (click)="onDaySelectionChange(day.value)"
+                                style="cursor: pointer"
+                            >
+                                <label class="form-check-label d-flex align-items-center" [for]="'day' + day.value">
+                                    <i class="bi bi-calendar-day me-2 text-muted"></i>
                                     {{ day.label }}
                                 </label>
                             </div>
@@ -195,54 +236,67 @@
                     </div>
                 </div>
 
-                <!-- Giảng viên -->
-                <div class="mb-3">
-                    <label class="form-label"> Giảng viên đứng lớp <span class="text-danger">*</span> </label>
+                <!-- Instructor Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">
+                        <i class="bi bi-person-video3 me-1 text-primary"></i>Giảng viên
+                        <span class="text-danger">*</span>
+                    </label>
 
                     <!-- Search Input -->
-                    <div class="position-relative">
-                        <input
-                            type="text"
-                            class="form-control"
-                            [(ngModel)]="instructorSearchTerm"
-                            (input)="onInstructorSearch()"
-                            name="instructorSearch"
-                            placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
-                            autocomplete="off"
-                        />
+                    <div class="position-relative mb-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-primary">
+                                <i class="bi bi-search text-primary"></i>
+                            </span>
+                            <input
+                                type="text"
+                                class="form-control form-control-lg border-primary border-end-1"
+                                [(ngModel)]="instructorSearchTerm"
+                                (input)="onInstructorSearch()"
+                                name="instructorSearch"
+                                placeholder="Tìm kiếm giảng viên..."
+                                autocomplete="off"
+                            />
+                        </div>
 
                         <!-- Search Results Dropdown -->
                         <div
                             *ngIf="instructors.length > 0"
-                            class="dropdown-menu show position-absolute w-100 mt-1"
-                            style="max-height: 200px; overflow-y: auto; z-index: 1050"
+                            class="dropdown-menu show position-absolute w-100 mt-1 shadow"
+                            style="max-height: 250px; overflow-y: auto; z-index: 1050"
                         >
                             <button
                                 *ngFor="let instructor of instructors"
                                 type="button"
-                                class="dropdown-item"
+                                class="dropdown-item d-flex align-items-center py-2"
                                 (click)="selectInstructor(instructor)"
                             >
+                                <div class="me-3">
+                                    <i class="bi bi-person-circle fs-5 text-primary"></i>
+                                </div>
                                 <div>
                                     <strong>{{ instructor.fullname }}</strong>
-                                    <br />
-                                    <small class="text-muted">{{ instructor.email }}</small>
+                                    <div class="text-muted small">{{ instructor.email }}</div>
                                 </div>
                             </button>
                         </div>
                     </div>
 
                     <!-- Selected Instructor Display -->
-                    <div class="mt-2 p-3 border rounded" [class.bg-light]="selectedInstructor">
+                    <div class="border rounded p-3" [class.bg-light]="selectedInstructor">
                         <div *ngIf="selectedInstructor; else noInstructorSelected">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="mb-1">{{ selectedInstructor.fullname }}</h6>
-                                    <small class="text-muted">{{ selectedInstructor.email }}</small>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-check fs-4 text-success me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">{{ selectedInstructor.fullname }}</h6>
+                                        <small class="text-muted">{{ selectedInstructor.email }}</small>
+                                    </div>
                                 </div>
                                 <button
                                     type="button"
-                                    class="btn btn-outline-secondary btn-sm"
+                                    class="btn btn-sm btn-outline-danger rounded-circle"
                                     (click)="clearSelectedInstructor()"
                                     title="Bỏ chọn"
                                 >
@@ -251,39 +305,62 @@
                             </div>
                         </div>
                         <ng-template #noInstructorSelected>
-                            <div class="text-muted text-center">
-                                <i class="bi bi-person-plus me-2"></i>
-                                Vui lòng chọn giảng viên
+                            <div class="text-center text-muted py-2">
+                                <i class="bi bi-person-x me-2"></i>
+                                Chưa chọn giảng viên
                             </div>
                         </ng-template>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="studentFile" class="form-label"
-                        >Import danh sách học viên (Excel) <span class="text-danger">*</span></label
-                    >
-                    <input
-                        type="file"
-                        class="form-control"
-                        id="studentFile"
-                        (change)="onFileSelected($event)"
-                        accept=".xlsx,.xls"
-                    />
+                <!-- Student File Upload -->
+                <div class="mb-4">
+                    <label for="studentFile" class="form-label fw-medium">
+                        <i class="bi bi-file-earmark-excel me-1 text-primary"></i>Danh sách học viên
+                        <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-primary">
+                            <i class="bi bi-upload text-primary"></i>
+                        </span>
+                        <input
+                            type="file"
+                            class="form-control form-control-lg border-primary border-end-1"
+                            id="studentFile"
+                            (change)="onFileSelected($event)"
+                            accept=".xlsx,.xls"
+                        />
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class="bi bi-info-circle me-1"></i>Vui lòng tải lên file Excel chứa danh sách học viên
+                        (student code)
+                    </div>
                 </div>
 
-                <div class="alert alert-info" *ngIf="selectedFile">
-                    <i class="bi bi-file-earmark-excel me-2"></i>
-                    <strong>File đã chọn:</strong> {{ selectedFile.name }}
-                    <small class="d-block mt-1">Kích thước: {{ formatFileSize(selectedFile.size) }}</small>
+                <!-- Selected File Info -->
+                <div class="alert alert-success d-flex align-items-center" *ngIf="selectedFile">
+                    <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>File đã chọn:</strong> {{ selectedFile.name }}
+                        <div class="small">Kích thước: {{ formatFileSize(selectedFile.size) }}</div>
+                    </div>
                 </div>
             </form>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Hủy</button>
-            <button type="button" class="btn btn-primary" [disabled]="disableCreateButton()" (click)="createClass()">
-                <i *ngIf="!isCreating" class="bi bi-plus-circle me-2"></i>
-                <i *ngIf="isCreating" class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Hủy
+            </button>
+            <button
+                type="button"
+                class="btn btn-primary rounded-2 px-4"
+                [disabled]="disableCreateButton()"
+                (click)="createClass()"
+            >
+                <span *ngIf="isCreating" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isCreating" class="bi bi-save me-2"></i>
                 Tạo lớp
             </button>
         </div>

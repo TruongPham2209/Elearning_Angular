@@ -126,9 +126,20 @@
                         type="button"
                         class="btn btn-primary"
                         (click)="saveSemester()"
-                        [disabled]="disableSaveButton()"
+                        [disabled]="disableSaveButton() || isEditing"
                     >
-                        {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                        <div class="text-center px-4" *ngIf="isEditing">
+                            <div
+                                class="spinner-border"
+                                role="status"
+                                style="width: 1.2rem; height: 1.2rem; color: white !important"
+                            >
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <span *ngIf="!isEditing">
+                            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                        </span>
                     </button>
                 </div>
             </div>
