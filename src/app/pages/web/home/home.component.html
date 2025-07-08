@@ -264,7 +264,7 @@
     [attr.aria-hidden]="!selectedNotification"
 >
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto">
             <div class="modal-header">
                 <h5 class="modal-title" id="notificationModalLabel">
                     <i class="bi bi-bell me-2"></i>
@@ -289,8 +289,8 @@
                 <div class="notification-content">
                     <!-- Placeholder for notification content -->
                     <p class="text-muted">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Nội dung chi tiết của thông báo sẽ được hiển thị tại đây.
+                        <!-- Hiển thị innerHtml -->
+                        <span [innerHTML]="selectedNotification.content"></span>
                     </p>
                 </div>
             </div>

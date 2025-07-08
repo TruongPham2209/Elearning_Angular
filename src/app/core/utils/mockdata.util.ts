@@ -92,41 +92,6 @@ export const mockClasses: ClassResponse[] = [
     },
 ];
 
-export const mockStudents: StudentResponse[] = [
-    {
-        id: '1',
-        username: 'SV001',
-        fullname: 'Nguyễn Văn An',
-        email: 'nva@example.com',
-        isBanned: false,
-        isSelected: false,
-    },
-    {
-        id: '2',
-        username: 'SV002',
-        fullname: 'Trần Thị Bình',
-        email: 'ttb@example.com',
-        isBanned: false,
-        isSelected: false,
-    },
-    {
-        id: '3',
-        username: 'SV003',
-        fullname: 'Lê Văn Cường',
-        email: 'lvc@example.com',
-        isBanned: false,
-        isSelected: false,
-    },
-    {
-        id: '4',
-        username: 'SV004',
-        fullname: 'Phạm Thị Dung',
-        email: 'ptd@example.com',
-        isBanned: true,
-        isSelected: false,
-    },
-];
-
 export const mockBannedStudents: BannedStudentResponse[] = [
     {
         code: 'SV004',

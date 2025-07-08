@@ -67,7 +67,7 @@
                             </tr>
                         </thead>
                         <!-- Loading Row -->
-                        <tbody *ngIf="isLoading">
+                        <tbody *ngIf="isLoadingStudent">
                             <tr>
                                 <td colspan="6" class="text-center py-4">
                                     <div class="d-flex justify-content-center align-items-center">
@@ -80,7 +80,7 @@
                             </tr>
                         </tbody>
                         <!-- Data Rows -->
-                        <tbody *ngIf="!isLoading">
+                        <tbody *ngIf="!isLoadingStudent">
                             <tr
                                 *ngFor="let student of students; let i = index"
                                 [class.table-danger]="student.isSelected"
@@ -93,7 +93,7 @@
                                             [id]="'student-' + student.id"
                                             [(ngModel)]="student.isSelected"
                                             (change)="onStudentSelectionChange()"
-                                            [disabled]="student.isBanned"
+                                            [disabled]="student.banned"
                                         />
                                         <i
                                             ><b>{{ i + 1 }}</b></i
@@ -101,17 +101,17 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <strong>{{ student.username }}</strong>
+                                    <strong>{{ student.code }}</strong>
                                 </td>
                                 <td>{{ student.fullname }}</td>
                                 <td>{{ student.email }}</td>
                                 <td class="text-center">
                                     <span
                                         class="badge"
-                                        [class.bg-success]="!student.isBanned"
-                                        [class.bg-danger]="student.isBanned"
+                                        [class.bg-success]="!student.banned"
+                                        [class.bg-danger]="student.banned"
                                     >
-                                        {{ student.isBanned ? 'Đã ban' : 'Hoạt động' }}
+                                        {{ student.banned ? 'Đã ban' : 'Hoạt động' }}
                                     </span>
                                 </td>
                             </tr>
@@ -159,7 +159,7 @@
                             </tr>
                         </thead>
                         <!-- Loading Row -->
-                        <tbody *ngIf="isLoading">
+                        <tbody *ngIf="isLoadingBannedStudents">
                             <tr>
                                 <td colspan="7" class="text-center py-4">
                                     <div class="d-flex justify-content-center align-items-center">
@@ -172,7 +172,7 @@
                             </tr>
                         </tbody>
                         <!-- Data Rows -->
-                        <tbody *ngIf="!isLoading">
+                        <tbody *ngIf="!isLoadingBannedStudents">
                             <tr *ngFor="let bannedStudent of bannedStudents; let i = index">
                                 <td>
                                     <strong>{{ bannedStudent.code }}</strong>
@@ -202,6 +202,7 @@
                                     </button>
                                 </td>
                             </tr>
+
                             <tr *ngIf="bannedStudents.length === 0">
                                 <td colspan="7" class="text-center py-5">
                                     <div class="text-muted">
@@ -243,7 +244,7 @@
                     <tbody>
                         <tr *ngFor="let student of getSelectedStudents()">
                             <td>
-                                <strong>{{ student.username }}</strong>
+                                <strong>{{ student.code }}</strong>
                             </td>
                             <td>{{ student.fullname }}</td>
                             <td>{{ student.email }}</td>

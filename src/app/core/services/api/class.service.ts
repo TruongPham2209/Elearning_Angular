@@ -12,7 +12,7 @@ export class ClassService {
     constructor(private readonly fetchingService: BaseFetchingService) {}
 
     getById(id: string): Observable<ClassResponse> {
-        return this.fetchingService.get(`/api/classes/${id}/`);
+        return this.fetchingService.get(`/api/classes/${id}`);
     }
 
     getClasses(): Observable<SemesterWithClassesResponse[]> {
@@ -24,11 +24,11 @@ export class ClassService {
     }
 
     getStudentsInClass(classId: string): Observable<StudentResponse[]> {
-        return this.fetchingService.get(`/api/classes/${classId}/students/`);
+        return this.fetchingService.get(`/api/classes/${classId}/students`);
     }
 
     deleteById(id: string): Observable<void> {
-        return this.fetchingService.delete(`/api/classes/${id}/`);
+        return this.fetchingService.delete(`/api/classes/${id}`);
     }
 
     createClass(req: ClassForm): Observable<void> {

@@ -2,16 +2,16 @@ import { BannedCause } from '../enum/banned_cause.model';
 
 interface StudentResponse {
     id: string;
-    username: string; // MSSV
+    code: string; // MSSV
     fullname: string;
     email: string;
-    isBanned: boolean;
+    banned: boolean;
     isSelected?: boolean; // Cho việc select để ban
 }
 
 interface BanStudentRequest {
     classId: string;
-    students: string[];
+    studentCodes: string[];
     cause: BannedCause;
     description: string;
 }
