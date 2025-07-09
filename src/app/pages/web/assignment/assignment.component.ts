@@ -6,6 +6,7 @@ import { ToastService } from '../../../core/services/ui/toast.service';
 import { SubmissionService } from '../../../core/services/api/submission.service';
 import { AssignmentService } from '../../../core/services/api/assignment.service';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'web-assignment-page',
@@ -47,6 +48,8 @@ export class WebAssignmentPage implements OnInit {
         private readonly assignmentService: AssignmentService,
         private readonly submissionService: SubmissionService,
         private readonly ngbModal: NgbModal,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
     ) {}
 
     ngOnInit(): void {
@@ -61,6 +64,25 @@ export class WebAssignmentPage implements OnInit {
                 isSubmitted: true,
             };
         }
+
+        // Lấy assignmentId từ query params hoặc route params
+        const assignmentId = this.route.snapshot.queryParamMap.get('assignmentId');
+        if (!assignmentId) {
+            this.toastService.show('Không tìm thấy assignmentId trong URL!', 'error');
+            // this.router.navigate(['/home']);
+            return;
+        }
+
+        // this.assignmentService.getById(assignmentId).subscribe({
+        //     next: (response) => {
+        //         this.assignment = response;
+        //         this.loadSubmission();
+        //     },
+        //     error: (error) => {
+        //         this.toastService.show('Không thể tải thông tin bài tập! ' + (error.message || ''), 'error');
+        // this.router.navigate(['/home']);
+        //     },
+        // });
     }
 
     onDragOver(event: DragEvent) {
@@ -146,15 +168,26 @@ export class WebAssignmentPage implements OnInit {
             return;
         }
 
-        this.isRemoving = true;
-        setTimeout(() => {
-            this.submission = null;
-            this.isSubmitted = false;
-            this.isRemoving = false;
+        if (!this.submission) {
+            this.toastService.show('Không có bài nộp nào để gỡ!', 'warning');
+            return;
+        }
 
-            this.toastService.show('Đã gỡ bài nộp thành công!', 'success');
-            this.removeSubmissionModal?.close();
-        }, 1000);
+        this.isRemoving = true;
+        this.submissionService.remove(this.submission.id).subscribe({
+            next: () => {
+                this.toastService.show('Gỡ bài thành công!', 'success');
+                this.removeSubmissionModal?.close();
+
+                this.submission = null;
+                this.isSubmitted = false;
+                this.isRemoving = false;
+            },
+            error: (error) => {
+                this.toastService.show('Gỡ bài nộp thất bại! ' + (error.message || ''), 'error');
+                this.isRemoving = false;
+            },
+        });
     }
 
     downloadSubmission() {
@@ -183,5 +216,18 @@ export class WebAssignmentPage implements OnInit {
         } else {
             return { class: 'text-success', text: 'Còn thời gian' };
         }
+    }
+
+    private loadSubmission(): void {
+        const assignmentId = this.assignment.id;
+        this.submissionService.getById(assignmentId).subscribe({
+            next: (response) => {
+                this.submission = response;
+                this.isSubmitted = response.isSubmitted;
+            },
+            error: (error) => {
+                this.toastService.show('Không thể tải thông tin nộp bài! ' + (error.message || ''), 'error');
+            },
+        });
     }
 }

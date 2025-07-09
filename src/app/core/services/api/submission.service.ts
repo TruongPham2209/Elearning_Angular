@@ -15,7 +15,7 @@ export class SubmissionService {
         return this.fetchingService.post<Page<SubmissionResponse>>(`/api/submissions/filter`, filter);
     }
 
-    getById(id: string): Observable<LessionResponse> {
+    getById(id: string): Observable<SubmissionResponse> {
         return this.fetchingService.get(`/api/submissions/${id}`);
     }
 
