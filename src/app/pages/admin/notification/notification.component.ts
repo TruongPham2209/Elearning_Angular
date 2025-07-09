@@ -110,8 +110,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
                 this.isLoading = false;
             },
             error: (error) => {
-                console.error('Error loading notifications:', error);
-                this.toastService.show(error.message, 'error');
+                this.toastService.show('Lỗi khi tải thông báo.' + (error.message || ''), 'error');
                 this.isLoading = false;
             },
         });
@@ -194,8 +193,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
                     this.deleteModalRef?.close();
                 },
                 error: (error) => {
-                    console.error('Error deleting notification:', error);
-                    this.toastService.show(error.message, 'error');
+                    this.toastService.show('Có lỗi trong quá trình xóa thông báo.  ' + (error.message || ''), 'error');
                     this.notificationToDelete = null;
                     this.deleteModalRef?.close();
                 },
@@ -219,8 +217,7 @@ export class AdminNotificationPage implements OnInit, OnDestroy {
                 this.resetForm();
             },
             error: (error) => {
-                console.error('Error creating notification:', error);
-                this.toastService.show(error.message, 'error');
+                this.toastService.show('Lỗi trong quá trình tạo thông báo. ' + (error.message || ''), 'error');
                 this.resetForm();
             },
         });

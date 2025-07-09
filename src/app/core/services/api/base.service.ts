@@ -1,9 +1,8 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { GATEWAY } from './../../../../environments/endpoint.env';
 import { Injectable } from '@angular/core';
-import { JwtService } from '../auth/jwt.service';
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthenticationService } from '../auth/authentication.service';
+import { GATEWAY } from './../../../../environments/endpoint.env';
 
 @Injectable({
     providedIn: 'root',
@@ -12,7 +11,6 @@ export class BaseFetchingService {
     private readonly GATEWAY = GATEWAY;
     constructor(
         private readonly http: HttpClient,
-        private readonly jwtService: JwtService,
         private readonly authService: AuthenticationService,
     ) {}
 
@@ -32,7 +30,6 @@ export class BaseFetchingService {
     }
 
     private handleError(error: HttpErrorResponse): Observable<never> {
-        console.error('An error occurred:', error);
         console.error(
             `Error Status: ${error.status}\nMessage: ${error.message}\nStack: ${error.error?.stack || 'No stack trace available'}`,
         );

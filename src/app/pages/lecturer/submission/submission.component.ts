@@ -58,8 +58,7 @@ export class LecturerSubmissionPage implements OnInit {
                 this.loadSubmissions();
             },
             error: (error) => {
-                console.error('Error fetching assignment:', error);
-                this.toastService.show('Không thể tải thông tin bài tập.', 'error');
+                this.toastService.show('Không thể tải thông tin bài tập. ' + (error.message || ''), 'error');
             },
         });
     }
@@ -78,8 +77,7 @@ export class LecturerSubmissionPage implements OnInit {
                 this.isLoadingSubmissions = false;
             },
             error: (error) => {
-                console.error('Error fetching submissions:', error);
-                this.toastService.show('Không thể tải danh sách bài nộp.', 'error');
+                this.toastService.show('Không thể tải danh sách bài nộp. ' + (error.message || ''), 'error');
                 this.isLoadingSubmissions = false;
             },
         });
@@ -113,8 +111,7 @@ export class LecturerSubmissionPage implements OnInit {
                 }
             },
             error: (error) => {
-                console.error('Error fetching submission history:', error);
-                this.toastService.show('Không thể tải lịch sử nộp bài.', 'error');
+                this.toastService.show('Không thể tải lịch sử nộp bài. ' + (error.message || ''), 'error');
                 this.isLoadingHistory = false;
             },
         });

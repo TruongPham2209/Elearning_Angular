@@ -203,7 +203,7 @@ export class AdminUserPage implements OnInit {
             }
         } catch (error: any) {
             console.error('Error initializing file parsing:', error);
-            this.toastService.show(error.message, 'error');
+            this.toastService.show('Lỗi trong quá trình phân tích file', 'error');
         } finally {
             this.isParsingFile = false;
         }
@@ -232,7 +232,7 @@ export class AdminUserPage implements OnInit {
             },
             error: (error) => {
                 this.isImporting = false;
-                this.toastService.show(`Lỗi khi import: ${error.message}`, 'error');
+                this.toastService.show(`Lỗi trong quá trình tạo users. ` + (error.message || ''), 'error');
                 modal.close();
                 this.resetImportState();
             },

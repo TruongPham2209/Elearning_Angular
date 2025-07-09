@@ -38,8 +38,7 @@ export class AdminSemesterPage implements OnInit {
                 this.semesters = data;
             },
             error: (error) => {
-                console.error('Error fetching semesters:', error);
-                this.toastService.show('Không thể tải danh sách học kỳ. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Không thể tải danh sách học kỳ.  ' + (error.message || ''), 'error');
             },
         });
     }
@@ -129,9 +128,9 @@ export class AdminSemesterPage implements OnInit {
                 this.closeModal();
             },
             error: (error) => {
-                console.error('Error saving semester:', error);
                 this.toastService.show(
-                    this.isEditMode ? 'Cập nhật học kỳ thất bại.' : 'Thêm học kỳ mới thất bại.',
+                    (this.isEditMode ? 'Cập nhật học kỳ thất bại. ' : 'Thêm học kỳ mới thất bại. ') +
+                        (error.message || ''),
                     'error',
                 );
                 this.closeModal();

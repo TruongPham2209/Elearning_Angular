@@ -69,8 +69,7 @@ export class WebHomePage implements OnInit {
                 this.loadingClass = false;
             },
             error: (error) => {
-                console.error('Error loading classes:', error);
-                this.toastService.show('An error occurred while loading classes. Please try again later.', 'error');
+                this.toastService.show('Lỗi trong quá tình tải thông tin lớp học. ' + (error.message || ''), 'error');
                 this.loadingClass = false;
             },
         });
@@ -90,11 +89,7 @@ export class WebHomePage implements OnInit {
                 this.loadingNotifications = false;
             },
             error: (error) => {
-                console.error('Error loading notifications:', error);
-                this.toastService.show(
-                    'An error occurred while loading notifications. Please try again later.',
-                    'error',
-                );
+                this.toastService.show('Lỗi trong quá trình tải thông báo. ' + (error.message || ''), 'error');
                 this.loadingNotifications = false;
             },
         });
@@ -112,7 +107,7 @@ export class WebHomePage implements OnInit {
         }
 
         if (this.loadingNotifications) {
-            this.toastService.show('Notifications are currently loading. Please wait.', 'info');
+            this.toastService.show('Đang tải thôn báo. Vui lòng đợi giây lát.', 'info');
             return;
         }
 
@@ -124,12 +119,12 @@ export class WebHomePage implements OnInit {
 
     loadNotificationPage(page: number): void {
         if (this.loadingNotifications) {
-            this.toastService.show('Notifications are currently loading. Please wait.', 'info');
+            this.toastService.show('Đang tải thôn báo. Vui lòng đợi giây lát.', 'info');
             return;
         }
 
         if (page < 0 || page >= this.notifications.totalPages) {
-            this.toastService.show('Invalid page number.', 'error');
+            this.toastService.show('Sô trang không hợp lệ.', 'error');
             return;
         }
         this.notificationFilter.page = page;

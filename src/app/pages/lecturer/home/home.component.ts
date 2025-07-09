@@ -68,11 +68,7 @@ export class LecturerHomePage implements OnInit {
                 this.isLoadingNotifications = false;
             },
             error: (error) => {
-                console.error('Error loading notifications:', error);
-                this.toastService.show(
-                    'An error occurred while loading notifications. Please try again later.',
-                    'error',
-                );
+                this.toastService.show('Lỗi trong quá trình tải thông báo. ' + (error.message || ''), 'error');
                 this.isLoadingNotifications = false;
             },
         });
@@ -87,8 +83,7 @@ export class LecturerHomePage implements OnInit {
                 this.isLoadingSemesters = false;
             },
             error: (error) => {
-                console.error('Error loading semesters:', error);
-                this.toastService.show('An error occurred while loading semesters. Please try again later.', 'error');
+                this.toastService.show('Lỗi trong quá trình tải thông tin học kỳ. ' + (error.message || ''), 'error');
                 this.isLoadingSemesters = false;
             },
         });

@@ -1,12 +1,42 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <div class="class-manage-header d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-4">Quản lý lớp học</h2>
-                <button class="btn btn-primary" (click)="goToManageStudent()">
-                    <i class="bi bi-people-fill me-2"></i>
-                    Danh sách sinh viên
-                </button>
+            <div class="class-manage-header mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                    <!-- Thông tin lớp -->
+                    <div class="text-start">
+                        <h4 class="mb-3">
+                            <i class="bi bi-mortarboard-fill me-2"></i>
+                            Quản lý lớp học: {{ currentClass?.name || 'Chưa có thông tin' }}
+                        </h4>
+
+                        <!-- Thẻ trắng chứa thông tin -->
+                        <div class="bg-light rounded p-3 ps-0">
+                            <ul class="list-unstyled text-muted mb-0">
+                                <li class="mb-2 d-flex ms-2">
+                                    <i class="bi bi-hash me-2"></i>
+                                    <strong>Lớp:</strong> {{ currentClass?.name || 'N/A' }}
+                                </li>
+                                <li class="mb-2 d-flex ms-2">
+                                    <i class="bi bi-door-open me-2"></i>
+                                    <strong>Phòng học:</strong> {{ currentClass?.room || 'N/A' }}
+                                </li>
+                                <li class="mb-2 d-flex ms-2">
+                                    <i class="bi bi-clock me-2"></i>
+                                    <strong>Ca dạy:</strong> {{ currentClass?.schedule || 'N/A' }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Nút điều hướng -->
+                    <div>
+                        <button class="btn btn-primary" (click)="goToManageStudent()">
+                            <i class="bi bi-people-fill me-2"></i>
+                            Danh sách sinh viên
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Quản lý buổi học -->
@@ -67,7 +97,7 @@
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div class="flex-grow-1">
                                                         <h6 class="card-title">{{ document.title }}</h6>
-                                                        <p class="card-text">{{ document.content }}</p>
+                                                        <p class="card-text" [innerHTML]="document.content"></p>
                                                         <p class="card-text">
                                                             <strong>File đính kèm: </strong>
                                                             <a href="#" class="text-decoration-none">{{
@@ -119,7 +149,7 @@
                                                             <a
                                                                 href="javascript:void(0)"
                                                                 class="text-decoration-none"
-                                                                (click)="goToSubmissions(lession.id)"
+                                                                (click)="goToSubmissions(assignment.id)"
                                                             >
                                                                 {{ assignment.title }}
                                                             </a>
@@ -239,19 +269,22 @@
                     <label for="announcementContent" class="form-label fw-medium">
                         <i class="bi bi-text-paragraph me-1 text-primary"></i>Nội dung
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-primary align-items-start">
-                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
-                        </span>
-                        <textarea
-                            class="form-control form-control-lg border-primary border-end-1"
-                            id="announcementContent"
-                            rows="6"
-                            [(ngModel)]="newAnnouncement.content"
-                            name="content"
-                            required
-                            placeholder="Nhập nội dung thông báo"
-                        ></textarea>
+                    <div class="editor-container">
+                        <div
+                            class="NgxEditor__Wrapper form-control form-control-lg border-primary border-end-1"
+                            style="height: 350px"
+                        >
+                            <ngx-editor-menu [editor]="editor" [toolbar]="toolBar"> </ngx-editor-menu>
+                            <ngx-editor
+                                [editor]="editor"
+                                id="announcementContent"
+                                rows="6"
+                                [(ngModel)]="newAnnouncement.content"
+                                name="content"
+                                required
+                                placeholder="Nhập nội dung thông báo"
+                            ></ngx-editor>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
@@ -343,19 +376,22 @@
                     <label for="documentContent" class="form-label fw-medium">
                         <i class="bi bi-text-paragraph me-1 text-primary"></i>Mô tả
                     </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-primary align-items-start">
-                            <i class="bi bi-chat-left-text text-primary mt-1"></i>
-                        </span>
-                        <textarea
-                            class="form-control form-control-lg border-primary border-end-1 rounded-end-2"
-                            id="documentContent"
-                            rows="4"
-                            [(ngModel)]="newDocument.content"
-                            name="content"
-                            required
-                            placeholder="Nhập mô tả tài liệu"
-                        ></textarea>
+                    <div class="editor-container">
+                        <div
+                            class="NgxEditor__Wrapper form-control form-control-lg border-primary border-end-1"
+                            style="height: 350px"
+                        >
+                            <ngx-editor-menu [editor]="editor" [toolbar]="toolBar"> </ngx-editor-menu>
+                            <ngx-editor
+                                [editor]="editor"
+                                id="documentContent"
+                                rows="4"
+                                [(ngModel)]="newDocument.content"
+                                name="content"
+                                required
+                                placeholder="Nhập mô tả tài liệu"
+                            ></ngx-editor>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-4">
@@ -452,6 +488,7 @@
                             id="assignmentDeadline"
                             [(ngModel)]="newAssignment.deadline"
                             name="deadline"
+                            [min]="minDate"
                             required
                         />
                     </div>
@@ -463,7 +500,7 @@
                     <div class="editor-container">
                         <div
                             class="NgxEditor__Wrapper form-control form-control-lg border-primary border-end-1"
-                            style="height: 300px"
+                            style="height: 350px"
                         >
                             <ngx-editor-menu [editor]="editor" [toolbar]="toolBar"> </ngx-editor-menu>
                             <ngx-editor

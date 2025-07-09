@@ -14,6 +14,8 @@ import { AssignmentService } from '../../../core/services/api/assignment.service
 import { DocumentService } from '../../../core/services/api/document.service';
 import { ToastService } from '../../../core/services/ui/toast.service';
 import { LessionService } from './../../../core/services/api/lession.service';
+import { ClassResponse } from '../../../core/models/api/class.model';
+import { ClassService } from '../../../core/services/api/class.service';
 @Component({
     selector: 'lecturer-class-page',
     imports: [CommonModule, RouterModule, FormsModule, NgbModule, NgxEditorComponent, NgxEditorMenuComponent],
@@ -23,6 +25,8 @@ import { LessionService } from './../../../core/services/api/lession.service';
 export class LecturerClassPage implements OnInit, OnDestroy {
     editor!: Editor;
     toolBar: Toolbar = toolbarOptions;
+
+    minDate: string = new Date().toISOString().split('T')[0];
 
     createAssignmentModalRef: any;
     createDocumentModalRef: any;
@@ -49,6 +53,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
     isLoadingAnnouncements = false;
 
     // Modal states
+    currentClass: ClassResponse | null = null;
     assignmentToDelete: AssignmentResponse | null = null;
     documentToDelete: DocumentResponse | null = null;
 
@@ -72,6 +77,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
         private readonly docService: DocumentService,
         private readonly assignmentService: AssignmentService,
         private readonly lessionService: LessionService,
+        private readonly classService: ClassService,
     ) {}
 
     ngOnInit() {
@@ -79,8 +85,10 @@ export class LecturerClassPage implements OnInit, OnDestroy {
         const queryParams = this.router.routerState.snapshot.root.queryParams;
         console.log('Query Params:', queryParams);
 
-        if (queryParams['id']) {
-            this.classId = queryParams['id'];
+        if (!queryParams['id']) {
+            this.router.navigate(['/lecturer/home']);
+            this.toastService.show('Không tìm thấy lớp học. Vui lòng chọn lớp học khác.', 'error');
+            return;
         }
 
         if (!this.editor) {
@@ -91,8 +99,21 @@ export class LecturerClassPage implements OnInit, OnDestroy {
             });
         }
 
-        this.loadLessions();
-        this.loadAnnouncements();
+        this.classId = queryParams['id'];
+        this.classService.getById(this.classId!).subscribe({
+            next: (classResponse) => {
+                this.currentClass = classResponse;
+                this.newAnnouncement.classId = classResponse.id;
+                this.newDocument.lessionId = classResponse.id;
+
+                this.loadLessions();
+                this.loadAnnouncements();
+            },
+            error: (error) => {
+                this.toastService.show('Lỗi trong quá trình tải thông tin lớp học. ' + (error.message || ''), 'error');
+                this.router.navigate(['/lecturer/home']);
+            },
+        });
     }
 
     ngOnDestroy(): void {
@@ -144,8 +165,10 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                     this.closeCreateAnnouncementModal();
                 },
                 error: (error) => {
-                    console.error('Error creating announcement:', error);
-                    this.toastService.show('An error occurred while creating the announcement.', 'error');
+                    this.toastService.show(
+                        'Lỗi trong quá trình tạo thông báo cho lớp học. ' + (error.message || ''),
+                        'error',
+                    );
                     this.closeCreateAnnouncementModal();
                 },
             });
@@ -192,8 +215,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                     this.closeDocumentModal();
                 },
                 error: (error) => {
-                    console.error('Error creating document:', error);
-                    this.toastService.show('An error occurred while creating the document.', 'error');
+                    this.toastService.show('Lỗi trong quá trình tạo tài liệu. ' + (error.message || ''), 'error');
                     this.closeDocumentModal();
                 },
             });
@@ -203,6 +225,34 @@ export class LecturerClassPage implements OnInit, OnDestroy {
     onFileSelect(event: any) {
         const file = event.target.files[0];
         this.selectedFile = file;
+    }
+
+    confirmDeleteDocument(documentToDelete: DocumentResponse, content: TemplateRef<any>): void {
+        this.documentToDelete = documentToDelete;
+        this.deleteDocumentModalRef = this.modalService.open(content, { centered: true });
+    }
+
+    deleteDocument(): void {
+        if (this.documentToDelete) {
+            this.docService.delete(this.documentToDelete.id).subscribe({
+                next: () => {
+                    this.toastService.show('Đã xóa tài liệu thành công', 'success');
+                    this.lessions = this.lessions.map((lession) => {
+                        return {
+                            ...lession,
+                            documents: lession.documents?.filter((doc) => doc.id !== this.documentToDelete!.id) || [],
+                        };
+                    });
+                    this.deleteDocumentModalRef?.close();
+                    this.assignmentToDelete = null;
+                },
+                error: (error) => {
+                    this.toastService.show('Lỗi trong quá trinhfh gỡ bài tập. ' + (error.message || ''), 'error');
+                    this.deleteDocumentModalRef?.close();
+                    this.assignmentToDelete = null;
+                },
+            });
+        }
     }
 
     // Assignment management
@@ -240,8 +290,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                     this.closeAssignmentModal();
                 },
                 error: (error) => {
-                    console.error('Error creating assignment:', error);
-                    this.toastService.show('An error occurred while creating the assignment.', 'error');
+                    this.toastService.show('Lỗi trong quá trình giao bài tập. ' + (error.message || ''), 'error');
                     this.closeAssignmentModal();
                 },
             });
@@ -276,53 +325,23 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                     this.closeDeleteAssignmentModal();
                 },
                 error: (error) => {
-                    console.error('Error deleting assignment:', error);
-                    this.toastService.show('An error occurred while deleting the assignment.', 'error');
+                    this.toastService.show('Lỗi trong quá trình gỡ bài tập. ' + (error.message || ''), 'error');
                     this.closeDeleteAssignmentModal();
                 },
             });
         }
     }
 
-    confirmDeleteDocument(documentToDelete: DocumentResponse, content: TemplateRef<any>): void {
-        this.documentToDelete = documentToDelete;
-        this.deleteDocumentModalRef = this.modalService.open(content, { centered: true });
-    }
-
-    deleteDocument(): void {
-        if (this.documentToDelete) {
-            this.docService.delete(this.documentToDelete.id).subscribe({
-                next: () => {
-                    this.toastService.show('Đã xóa tài liệu thành công', 'success');
-                    this.lessions = this.lessions.map((lession) => {
-                        return {
-                            ...lession,
-                            documents: lession.documents?.filter((doc) => doc.id !== this.documentToDelete!.id) || [],
-                        };
-                    });
-                    this.deleteDocumentModalRef?.close();
-                    this.assignmentToDelete = null;
-                },
-                error: (error) => {
-                    console.error('Error deleting document:', error);
-                    this.toastService.show('An error occurred while deleting the document.', 'error');
-                    this.deleteDocumentModalRef?.close();
-                    this.assignmentToDelete = null;
-                },
-            });
-        }
-    }
-
-    goToSubmissions(lessionId: string) {
-        this.router.navigate(['/lecturer/submissions'], { queryParams: { lessionId } });
+    goToSubmissions(assignmentId: string) {
+        this.router.navigate(['/lecturer/submissions'], { queryParams: { assignmentId } });
     }
     // Disable states
     disableCreateAnnouncementButton(): boolean {
-        return !this.newAnnouncement.title || !this.newAnnouncement.content;
+        return this.newAnnouncement.title.trim() === '' || this.newAnnouncement.content.trim() === '';
     }
 
     disableCreateDocumentButton(): boolean {
-        return !this.newDocument.title || !this.newDocument.content || !this.selectedFile;
+        return this.newDocument.title.trim() === '' || this.newDocument.content.trim() === '' || !this.selectedFile;
     }
 
     disableCreateAssignmentButton(): boolean {
@@ -361,8 +380,10 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                 this.loadingResources.delete(lessionId);
             },
             error: (error) => {
-                console.error('Error loading lession resource:', error);
-                this.toastService.show('An error occurred while loading the lession resource.', 'error');
+                this.toastService.show(
+                    'Lỗi trong quá trình tải tài nguyên buổi học. ' + (error.message || ''),
+                    'error',
+                );
                 this.loadingResources.delete(lessionId);
             },
         });
@@ -393,8 +414,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                 this.isLoadingLessions = false;
             },
             error: (error) => {
-                console.error('Error loading lessions:', error);
-                this.toastService.show('An error occurred while loading the lessions.', 'error');
+                this.toastService.show('Lỗi trong quá trình tải buổi học. ' + (error.message || ''), 'error');
                 this.isLoadingLessions = false;
             },
         });
@@ -419,8 +439,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
                     this.isLoadingAnnouncements = false;
                 },
                 error: (error) => {
-                    console.error('Error loading announcements:', error);
-                    this.toastService.show('An error occurred while loading the announcements.', 'error');
+                    this.toastService.show('Lỗi trong quá trình tải thông báo. ' + (error.message || ''), 'error');
                     this.isLoadingAnnouncements = false;
                 },
             });

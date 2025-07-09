@@ -38,4 +38,8 @@ export class ClassService {
     banStudents(req: BanStudentRequest): Observable<void> {
         return this.fetchingService.post(`/api/classes/ban-students`, req);
     }
+
+    unbanStudent(req: { classId: string; studentCode: string }): Observable<void> {
+        return this.fetchingService.post(`/api/classes/unban`, req);
+    }
 }

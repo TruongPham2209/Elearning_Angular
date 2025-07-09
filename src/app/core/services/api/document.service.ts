@@ -11,7 +11,7 @@ export class DocumentService {
 
     create(req: DocumentRequest, file: File): Observable<DocumentResponse> {
         const formData = new FormData();
-        formData.append('room', new Blob([JSON.stringify(req)], { type: 'application/json' }));
+        formData.append('document', new Blob([JSON.stringify(req)], { type: 'application/json' }));
         formData.append('file', file);
 
         return this.fetchingService.post(`/api/documents/`, formData, true);

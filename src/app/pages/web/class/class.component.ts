@@ -58,7 +58,7 @@ export class WebClassPage implements OnInit {
         // Lấy classId từ queryParams
         const classId = this.router.routerState.snapshot.root.queryParams['classId'];
         if (!classId) {
-            this.toastService.show('Không tìm thấy lớp học. Vui lòng thử lại sau.', 'error');
+            this.toastService.show('Không tìm thấy lớp học. ', 'error');
             this.router.navigate(['/home']);
             return;
         }
@@ -71,9 +71,8 @@ export class WebClassPage implements OnInit {
                 this.loadAnnouncements();
             },
             error: (error) => {
-                console.error('Error fetching class:', error);
-                this.toastService.show('Không thể tải thông tin lớp học. Vui lòng thử lại sau.', 'error');
-                // this.router.navigate(['/home']);
+                this.toastService.show('Không thể tải thông tin lớp học. ' + (error.message || ''), 'error');
+                this.router.navigate(['/home']);
             },
         });
     }
@@ -116,7 +115,7 @@ export class WebClassPage implements OnInit {
 
         // Kiểm tra tín hợp lệ của page từ filter so với announcements dựa vào currentPage và pageSize
         if (this.announcementFilter.page < 0 || this.announcementFilter.page >= this.announcements.totalPages) {
-            this.toastService.show('Trang không hợp lệ. Vui lòng thử lại.', 'error');
+            this.toastService.show('Trang không hợp lệ. ', 'error');
             return;
         }
 
@@ -130,7 +129,7 @@ export class WebClassPage implements OnInit {
             },
             error: (error) => {
                 console.error('Error fetching announcements:', error);
-                this.toastService.show('Không thể tải thông báo. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Không thể tải thông báo. ', 'error');
                 this.isLoadingAnnouncements = false;
             },
         });
@@ -142,8 +141,7 @@ export class WebClassPage implements OnInit {
                 this.lessions = lessions;
             },
             error: (error) => {
-                console.error('Error fetching lessions:', error);
-                this.toastService.show('Không thể tải các bài học. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Không thể tải các bài học. ' + (error.message || ''), 'error');
             },
         });
     }

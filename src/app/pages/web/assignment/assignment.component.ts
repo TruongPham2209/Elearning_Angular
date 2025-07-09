@@ -134,8 +134,7 @@ export class WebAssignmentPage implements OnInit {
                 this.isSubmitting = false;
             },
             error: (error) => {
-                console.error('Error submitting assignment:', error);
-                this.toastService.show('Nộp bài thất bại! Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Nộp bài thất bại! ' + (error.message || ''), 'error');
                 this.isSubmitting = false;
             },
         });

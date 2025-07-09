@@ -58,6 +58,10 @@ export class AdminCoursePage implements OnInit {
     }
 
     loadCourses(page: number = 0) {
+        if (this.isLoading) return;
+
+        this.filter.page = page;
+        this.filter.pageSize = this.courses.pageSize;
         this.isLoading = true;
 
         this.courseService.getCourses(this.filter).subscribe({
@@ -68,8 +72,7 @@ export class AdminCoursePage implements OnInit {
                 this.isLoading = false;
             },
             error: (error) => {
-                console.error('Error loading courses:', error);
-                this.toastService.show('Lỗi khi tải danh sách khóa học', 'error');
+                this.toastService.show('Lỗi khi tải danh sách khóa học' + (error.message || ''), 'error');
                 this.isLoading = false;
             },
         });
@@ -171,7 +174,6 @@ export class AdminCoursePage implements OnInit {
         this.isLoading = true;
         this.courseService.save(this.currentCourseForm).subscribe({
             next: (course) => {
-                this.isLoading = false;
                 this.toastService.show(
                     this.isEditMode ? 'Cập nhật khóa học thành công' : 'Thêm khóa học thành công',
                     'success',
@@ -185,12 +187,12 @@ export class AdminCoursePage implements OnInit {
                     }
                 }
                 this.closeModal();
+                this.isLoading = false;
             },
             error: (error) => {
-                console.error('Error saving course:', error);
-                this.isLoading = false;
-                this.toastService.show('Lỗi khi lưu khóa học', 'error');
+                this.toastService.show('Lỗi khi lưu khóa học.' + (error.message || ''), 'error');
                 this.closeModal();
+                this.isLoading = false;
             },
         });
     }
@@ -208,8 +210,7 @@ export class AdminCoursePage implements OnInit {
                 this.isLoading = false;
             },
             error: (error) => {
-                console.error('Error deleting course:', error);
-                this.toastService.show('Lỗi khi xóa khóa học', 'error');
+                this.toastService.show('Lỗi khi xóa khóa học' + (error.message || ''), 'error');
                 this.closeDeleteModal();
                 this.isLoading = false;
             },

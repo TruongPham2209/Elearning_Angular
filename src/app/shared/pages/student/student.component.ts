@@ -7,10 +7,9 @@ import { ClassResponse } from '../../../core/models/api/class.model';
 import { BannedStudentResponse, BanStudentRequest, StudentResponse } from '../../../core/models/api/student.model';
 import { BannedCause } from '../../../core/models/enum/banned_cause.model';
 import { ClassService } from '../../../core/services/api/class.service';
-import { ToastService } from '../../../core/services/ui/toast.service';
-import { mockBannedStudents } from '../../../core/utils/mockdata.util';
-import { bannedCauseOptions } from './../../../core/models/types/navigator.interface';
 import { LoggingService } from '../../../core/services/api/logging.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { bannedCauseOptions } from './../../../core/models/types/navigator.interface';
 
 @Component({
     selector: 'manage-student-page',
@@ -20,6 +19,7 @@ import { LoggingService } from '../../../core/services/api/logging.service';
 })
 export class ManageStudentPage implements OnInit {
     banStudentModalReference: any;
+    unbanStudentModalReference: any;
 
     classId: string = '';
     currentClass: ClassResponse | null = null;
@@ -33,6 +33,7 @@ export class ManageStudentPage implements OnInit {
 
     students: StudentResponse[] = [];
     bannedStudents: BannedStudentResponse[] = [];
+    bannedStudentSelected: BannedStudentResponse | null = null;
     banData: BanStudentRequest = {
         classId: '',
         studentCodes: [],
@@ -40,8 +41,6 @@ export class ManageStudentPage implements OnInit {
         description: '',
     };
     bannedCauseOptions = bannedCauseOptions;
-
-    private mockBannedStudents: BannedStudentResponse[] = mockBannedStudents;
 
     constructor(
         private readonly router: Router,
@@ -140,11 +139,57 @@ export class ManageStudentPage implements OnInit {
                 this.resetBanData();
             },
             error: (error) => {
-                this.toastService.show('Không thể ban sinh viên. Vui lòng thử lại sau.', 'error');
-                console.error('Error banning students:', error);
+                this.toastService.show(
+                    'Không thể ban sinh viên. Vui lòng thử lại sau.' + (error.message || ''),
+                    'error',
+                );
                 this.resetBanData();
             },
         });
+    }
+
+    openUnbanStudentModal(content: any, student: BannedStudentResponse): void {
+        this.unbanStudentModalReference = this.modalService.open(content, { centered: true });
+        this.bannedStudentSelected = student;
+    }
+
+    unbanStudent(): void {
+        if (this.isUnlocking || !this.bannedStudentSelected) {
+            return;
+        }
+
+        this.isUnlocking = true;
+        const unbanRequest = {
+            classId: this.classId,
+            studentCode: this.bannedStudentSelected.code,
+        };
+        this.classService.unbanStudent(unbanRequest).subscribe({
+            next: () => {
+                this.toastService.show(
+                    `Đã mở ban cho sinh viên ${this.bannedStudentSelected?.fullname} thành công.`,
+                    'success',
+                );
+                this.loadStudents();
+                this.loadBannedStudents();
+
+                this.closeUnbanModal();
+            },
+            error: (error) => {
+                this.toastService.show(
+                    'Không thể mở ban sinh viên. Vui lòng thử lại sau.' + (error.message || ''),
+                    'error',
+                );
+                console.error('Error unbanning student:', error);
+
+                this.closeUnbanModal();
+            },
+        });
+    }
+
+    private closeUnbanModal(): void {
+        this.unbanStudentModalReference?.close();
+        this.bannedStudentSelected = null;
+        this.isUnlocking = false;
     }
 
     private resetBanData(): void {
@@ -163,8 +208,10 @@ export class ManageStudentPage implements OnInit {
                 this.banData.classId = classData.id;
             },
             error: (error) => {
-                this.toastService.show('Không thể tải thông tin lớp học. Vui lòng thử lại sau.', 'error');
-                console.error('Error loading class data:', error);
+                this.toastService.show(
+                    'Không thể tải thông tin lớp học. Vui lòng thử lại sau.' + (error.message || ''),
+                    'error',
+                );
             },
         });
     }
@@ -182,8 +229,10 @@ export class ManageStudentPage implements OnInit {
                 this.isLoadingStudent = false;
             },
             error: (error) => {
-                this.toastService.show('Không thể tải danh sách sinh viên. Vui lòng thử lại sau.', 'error');
-                console.error('Error loading students:', error);
+                this.toastService.show(
+                    'Không thể tải danh sách sinh viên. Vui lòng thử lại sau.' + (error.message || ''),
+                    'error',
+                );
                 this.isLoadingStudent = false;
             },
         });
@@ -199,8 +248,10 @@ export class ManageStudentPage implements OnInit {
                 this.isLoadingBannedStudents = false;
             },
             error: (error) => {
-                this.toastService.show('Không thể tải danh sách sinh viên đã bị ban. Vui lòng thử lại sau.', 'error');
-                console.error('Error loading banned students:', error);
+                this.toastService.show(
+                    'Không thể tải danh sách sinh viên đã bị ban. Vui lòng thử lại sau.' + (error.message || ''),
+                    'error',
+                );
                 this.isLoadingBannedStudents = false;
             },
         });

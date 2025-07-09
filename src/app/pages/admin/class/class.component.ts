@@ -117,7 +117,10 @@ export class AdminClassPage implements OnInit {
 
                 error: (error) => {
                     console.error('Lỗi khi tải thông tin khóa học:', error);
-                    this.toastService.show('Đã xảy ra lỗi khi tải thông tin khóa học. Vui lòng thử lại sau.', 'error');
+                    this.toastService.show(
+                        'Đã xảy ra lỗi khi tải thông tin khóa học. ' + (error.message || ''),
+                        'error',
+                    );
                     this.router.navigate(['/admin/dashboard']);
                     return;
                 },
@@ -203,9 +206,11 @@ export class AdminClassPage implements OnInit {
                 this.selectedFile = null;
                 this.newClass.studentCodes = [];
                 event.target.value = '';
-                console.error('Lỗi khi phân tích tệp:', error);
                 this.isImporting = false;
-                this.toastService.show('Đã xảy ra lỗi khi phân tích tệp. Vui lòng thử lại.', 'error');
+                this.toastService.show(
+                    'Đã xảy ra lỗi khi phân tích tệp. Vui lòng thử lại.' + (error.message || ''),
+                    'error',
+                );
             });
     }
 
@@ -235,8 +240,7 @@ export class AdminClassPage implements OnInit {
                 this.closeDeleteModal();
             },
             error: (error) => {
-                console.error('Lỗi khi xóa lớp học:', error);
-                this.toastService.show('Đã xảy ra lỗi khi xóa lớp học. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Đã xảy ra lỗi khi xóa lớp học. ' + (error.message || ''), 'error');
                 this.closeDeleteModal();
             },
         });
@@ -273,9 +277,8 @@ export class AdminClassPage implements OnInit {
                 this.resetFormAndCloseModal();
             },
             error: (error) => {
-                console.error('Lỗi khi tạo lớp học:', error);
                 this.resetFormAndCloseModal();
-                this.toastService.show('Đã xảy ra lỗi khi tạo lớp học. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Đã xảy ra lỗi khi tạo lớp học. ' + (error.message || ''), 'error');
             },
         });
     }
@@ -305,8 +308,7 @@ export class AdminClassPage implements OnInit {
                 this.isLoading = false;
             },
             error: (error) => {
-                console.error('Lỗi khi tải danh sách lớp học:', error);
-                this.toastService.show('Đã xảy ra lỗi khi tải danh sách lớp học. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Đã xảy ra lỗi khi tải danh sách lớp học. ' + (error.message || ''), 'error');
                 this.isLoading = false;
             },
         });
@@ -322,8 +324,7 @@ export class AdminClassPage implements OnInit {
                 this.loadClasses();
             },
             error: (error) => {
-                console.error('Lỗi khi tải danh sách học kỳ:', error);
-                this.toastService.show('Đã xảy ra lỗi khi tải danh sách học kỳ. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Đã xảy ra lỗi khi tải danh sách học kỳ. ' + (error.message || ''), 'error');
             },
         });
     }
@@ -340,8 +341,7 @@ export class AdminClassPage implements OnInit {
                 this.instructors = instructors.contents || [];
             },
             error: (error) => {
-                console.error('Lỗi khi tải danh sách giảng viên:', error);
-                this.toastService.show('Đã xảy ra lỗi khi tải danh sách giảng viên. Vui lòng thử lại sau.', 'error');
+                this.toastService.show('Đã xảy ra lỗi khi tải danh sách giảng viên. ' + (error.message || ''), 'error');
             },
         });
     }

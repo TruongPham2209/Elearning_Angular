@@ -111,7 +111,7 @@
                                         [class.bg-success]="!student.banned"
                                         [class.bg-danger]="student.banned"
                                     >
-                                        {{ student.banned ? 'Đã ban' : 'Hoạt động' }}
+                                        {{ student.banned ? 'Cấm thi' : 'Bình thường' }}
                                     </span>
                                 </td>
                             </tr>
@@ -191,12 +191,14 @@
                                     </span>
                                 </td>
                                 <td>{{ bannedStudent.bannedBy }}</td>
-                                <td>{{ bannedStudent.bannedDate | date: 'dd/MM/yyyy' }}</td>
+                                <td>{{ bannedStudent.bannedAt | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
                                 <td class="text-center">
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-outline-success"
                                         title="Bỏ ban sinh viên"
+                                        (click)="openUnbanStudentModal(unbanStudentModal, bannedStudent)"
+                                        [disabled]="isUnlocking"
                                     >
                                         <i class="bi bi-person-check"></i>
                                     </button>
@@ -285,6 +287,57 @@
             <button type="button" class="btn btn-danger" [disabled]="disableBanButton()" (click)="confirmBulkBan()">
                 <i class="bi bi-person-x me-2"></i>
                 Xác nhận cấm thi
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Unban Student Confirmation Modal - Improved -->
+<ng-template #unbanStudentModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <!-- Modal Header -->
+        <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title fw-semibold"><i class="bi bi-shield-check me-2"></i>Gỡ cấm thi</h5>
+            <button
+                type="button"
+                class="btn-close btn-close-white"
+                (click)="modal.dismiss('cancel')"
+                aria-label="Close"
+            ></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body p-4 text-center" *ngIf="bannedStudentSelected">
+            <div class="mb-4">
+                <i class="bi bi-shield-lock text-warning" style="font-size: 3rem"></i>
+            </div>
+            <p class="mb-3">Bạn đang xác nhận gỡ cấm thi cho sinh viên:</p>
+            <div class="alert alert-success d-flex align-items-center justify-content-center">
+                <i class="bi bi-person-check me-3"></i>
+                <div>
+                    <strong>{{ bannedStudentSelected.fullname }}</strong>
+                    <div class="small">Mã SV: {{ bannedStudentSelected.code }}</div>
+                </div>
+            </div>
+            <p class="text-muted small mt-3">
+                <i class="bi bi-info-circle me-1"></i>Sinh viên sẽ được khôi phục quyền thi ngay lập tức
+            </p>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Hủy
+            </button>
+            <button
+                type="button"
+                class="btn btn-success rounded-2 px-4"
+                [disabled]="isUnlocking"
+                (click)="unbanStudent()"
+            >
+                <span *ngIf="isUnlocking" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isUnlocking" class="bi bi-shield-check me-2"></i>
+                Xác nhận gỡ cấm
             </button>
         </div>
     </div>

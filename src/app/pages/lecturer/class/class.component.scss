@@ -393,3 +393,9 @@ h2 {
         padding: 0.5rem 0.75rem;
     }
 }
+
+::ng-deep .NgxEditor__Content,
+.NgxEditor {
+    max-height: 300px;
+    overflow-y: auto;
+}

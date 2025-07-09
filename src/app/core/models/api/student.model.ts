@@ -23,7 +23,7 @@ interface BannedStudentResponse {
     cause: BannedCause;
     description: string;
     bannedBy: string;
-    bannedDate: Date;
+    bannedAt: Date;
 }
 
 export type { StudentResponse, BanStudentRequest, BannedStudentResponse };

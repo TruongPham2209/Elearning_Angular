@@ -3,8 +3,59 @@
         <div class="col-12">
             <!-- Quản lý buổi học -->
             <div class="card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">Quản lý buổi học</h4>
+                <div class="card-header bg-light">
+                    <div class="row">
+                        <!-- Cột thông tin lớp học -->
+                        <div class="col-md-6 border-end pe-4">
+                            <h5 class="text-primary mb-3"><i class="bi bi-book me-2"></i> Thông tin lớp học</h5>
+                            <ul class="list-unstyled text-dark mb-0">
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-people-fill me-2 fs-5 text-info"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark">Lớp:</span>
+                                        <span class="text-muted">{{ currentClass.name }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-geo-alt-fill me-2 fs-5 text-info"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark">Phòng học:</span>
+                                        <span class="text-muted">{{ currentClass.room }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-clock-fill me-2 fs-5 text-info"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark">Ca học:</span>
+                                        <span class="text-muted">{{ currentClass.schedule }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Cột thông tin giảng viên -->
+                        <div class="col-md-6 ps-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="bi bi-person-vcard me-2"></i> Thông tin giảng viên
+                            </h5>
+                            <ul class="list-unstyled text-dark mb-0">
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-person-fill me-2 fs-5 text-success"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark">Tên giảng viên:</span>
+                                        <span class="text-muted">{{ currentClass.lecturerName }}</span>
+                                    </div>
+                                </li>
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-envelope-fill me-2 fs-5 text-success"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark">Email:</span>
+                                        <span class="text-muted">{{ currentClass.lecturerEmail }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="accordion" id="lessionsAccordion">
