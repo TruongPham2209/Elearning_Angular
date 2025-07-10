@@ -9,13 +9,10 @@ import { ToastService } from '../ui/toast.service';
     providedIn: 'root',
 })
 export class AuthenticationService {
-    constructor(
-        private readonly router: Router,
-        private readonly toastService: ToastService,
-    ) {}
+    constructor(private readonly toastService: ToastService) {}
 
     isAuthenticated(): boolean {
-        const accessToken = localStorage.getItem('access_token');
+        const accessToken = this.getToken();
         if (!accessToken) return false;
 
         try {
@@ -23,9 +20,10 @@ export class AuthenticationService {
             return true;
         } catch (err) {
             console.error('Invalid token format or fake token detected:', err);
-            this.logout();
-            return false;
         }
+
+        this.logout();
+        return false;
     }
 
     hasAnyRoles(roles: ManagerRole[]): boolean {
@@ -39,18 +37,20 @@ export class AuthenticationService {
             return userRoles.some((role) => roles.includes(role as ManagerRole));
         } catch (err) {
             console.error('Invalid token format or fake token detected:', err);
-            this.logout();
         }
 
+        this.toastService.show('You do not have permission to access this page.', 'error');
+        this.logout();
         return false;
     }
 
     getToken(): string {
-        return localStorage.getItem('access_token') || '';
+        return sessionStorage.getItem('access_token') || '';
     }
 
     logout() {
-        localStorage.removeItem('access_token');
+        console.log('Logging out...');
+        sessionStorage.removeItem('access_token');
         this.toastService.show('You have been logged out successfully.', 'success');
         window.location.href = `${AUTHORIZATION_SERVER}/logout`;
     }

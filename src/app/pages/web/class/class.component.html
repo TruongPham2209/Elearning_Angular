@@ -1,9 +1,8 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <!-- Quản lý buổi học -->
             <div class="card mb-4">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light" *ngIf="currentClass">
                     <div class="row">
                         <!-- Cột thông tin lớp học -->
                         <div class="col-md-6 border-end pe-4">
@@ -57,8 +56,16 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="card-body">
                     <div class="accordion" id="lessionsAccordion">
+                        <!-- Hiệu ứng loading ở đây -->
+                        <div *ngIf="isLoadingLessions" class="text-center mb-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+
                         <div *ngFor="let lession of lessions" class="accordion-item mb-3">
                             <h2 class="accordion-header">
                                 <button
@@ -72,18 +79,35 @@
                             </h2>
                             <div class="accordion-collapse collapse" [class.show]="isLessionExpanded(lession.id)">
                                 <div class="accordion-body">
+                                    <!-- Hiệu ứng loading ở đây -->
+                                    <div *ngIf="loadingResources.has(lession.id)" class="text-center mb-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+
                                     <!-- Tài liệu -->
                                     <div class="mb-4">
-                                        <div *ngIf="lession.documents?.length === 0" class="text-muted">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5>Tài liệu</h5>
+                                        </div>
+
+                                        <div
+                                            *ngIf="lession.documents?.length === 0 && !loadingResources.has(lession.id)"
+                                            class="text-muted"
+                                        >
                                             Chưa có tài liệu nào
                                         </div>
 
                                         <div *ngFor="let document of lession.documents" class="card mb-2">
-                                            <div class="card-body">
+                                            <div
+                                                class="card-body"
+                                                style="cursor: pointer"
+                                                (click)="viewDocumentDetail(document, documentDetailModal)"
+                                            >
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div class="flex-grow-1">
                                                         <h6 class="card-title">{{ document.title }}</h6>
-                                                        <p class="card-text">{{ document.content }}</p>
                                                         <p class="card-text">
                                                             <strong>File đính kèm: </strong>
                                                             <a href="#" class="text-decoration-none">{{
@@ -91,8 +115,8 @@
                                                             }}</a>
                                                         </p>
                                                         <small class="text-muted">
-                                                            Tạo ngày:
-                                                            {{ document.uploadAt | date: 'dd/MM/yyyy' }}
+                                                            <i class="bi bi-clock me-1 text-primary"></i>
+                                                            Tạo ngày: {{ document.uploadAt | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
                                                 </div>
@@ -102,7 +126,16 @@
 
                                     <!-- Bài tập -->
                                     <div class="mb-4">
-                                        <div *ngIf="lession.assignments?.length === 0" class="text-muted">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5>Bài tập</h5>
+                                        </div>
+
+                                        <div
+                                            *ngIf="
+                                                lession.assignments?.length === 0 && !loadingResources.has(lession.id)
+                                            "
+                                            class="text-muted"
+                                        >
                                             Chưa có bài tập nào
                                         </div>
 
@@ -114,12 +147,13 @@
                                                             <a
                                                                 href="javascript:void(0)"
                                                                 class="text-decoration-none"
-                                                                (click)="goToSubmissions(lession.id)"
+                                                                (click)="goToSubmissions(assignment.id)"
                                                             >
                                                                 {{ assignment.title }}
                                                             </a>
                                                         </h6>
                                                         <small class="text-muted">
+                                                            <i class="bi bi-calendar me-1 text-primary"></i>
                                                             Hạn nộp: {{ assignment.deadline | date: 'dd/MM/yyyy' }}
                                                         </small>
                                                     </div>
@@ -149,26 +183,33 @@
                     </div>
                 </div>
                 <div class="card-body" [class.d-none]="!showAnnouncementDropdown">
-                    <div *ngIf="announcements.contents.length === 0" class="text-muted">Chưa có thông báo nào</div>
+                    <div *ngIf="announcements.contents" class="text-muted">Chưa có thông báo nào</div>
 
-                    <div *ngFor="let announcement of announcements.contents" class="card mb-2">
+                    <!-- Hiệu ưng loading ở đây -->
+                    <div *ngIf="isLoadingAnnouncements" class="text-center mb-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <div *ngFor="let announcement of announcements.contents" class="card mb-4" style="cursor: pointer">
                         <div class="card-body">
                             <h6 class="card-title">{{ announcement.title }}</h6>
-                            <p class="card-text">
-                                <a
-                                    href="javascript:void(0)"
+                            <div class="card-text">
+                                <div
                                     class="text-decoration-none"
-                                    (click)="viewAnnouncementDetail(announcement)"
+                                    (click)="viewAnnouncementDetail(announcement, announcementDetailModal)"
                                 >
                                     {{
                                         announcement.content.length > 100
                                             ? (announcement.content | slice: 0 : 100) + '...'
                                             : announcement.content
                                     }}
-                                </a>
-                            </p>
+                                </div>
+                            </div>
                             <small class="text-muted">
-                                {{ announcement.createdAt | date: 'dd/MM/yyyy' }}
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ announcement.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                             </small>
                         </div>
                     </div>
@@ -178,29 +219,64 @@
     </div>
 </div>
 
-<!-- Modal chi tiết thông báo -->
-<div
-    class="modal fade"
-    [class.show]="showAnnouncementDetailModal"
-    [style.display]="showAnnouncementDetailModal ? 'block' : 'none'"
-    tabindex="-1"
->
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">{{ selectedAnnouncement?.title }}</h5>
-                <button type="button" class="btn-close" (click)="closeAnnouncementDetailModal()"></button>
+<!-- Modal chi tiết thông báo - Improved -->
+<ng-template #announcementDetailModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-info px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedAnnouncement?.title }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-4">
+                <div class="border p-3 bg-light rounded">
+                    <div class="preformatted-text" [innerHTML]="selectedAnnouncement?.content"></div>
+                </div>
             </div>
-            <div class="modal-body">
-                <p>{{ selectedAnnouncement?.content }}</p>
-                <hr />
-                <small class="text-muted">
-                    Ngày tạo: {{ selectedAnnouncement ? (selectedAnnouncement.createdAt | date: 'dd/MM/yyyy') : '' }}
-                </small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="closeAnnouncementDetailModal()">Đóng</button>
+            <div class="text-muted small">
+                <i class="bi bi-calendar me-1"></i>
+                Ngày tạo: {{ selectedAnnouncement?.createdAt | date: 'dd/MM/yyyy HH:mm' }}
             </div>
         </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Đóng
+            </button>
+        </div>
     </div>
-</div>
+</ng-template>
+
+<!-- Modal chi tiết tài liệu - Improved -->
+<ng-template #documentDetailModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-info px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedDocument?.title }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-4">
+                <div class="border p-3 bg-light rounded">
+                    <div class="preformatted-text" [innerHTML]="selectedDocument?.content"></div>
+                </div>
+            </div>
+            <p class="card-text">
+                <i class="bi bi-file-earmark me-1 text-info"></i>
+                <strong>File đính kèm: </strong>
+                <a href="#" class="text-decoration-none">{{ selectedDocument?.fileName }}</a>
+            </p>
+            <p class="card-text">
+                <i class="bi bi-calendar me-1 text-info"></i>
+                <strong>Ngày tạo: </strong>
+                {{ selectedDocument?.uploadAt | date: 'dd/MM/yyyy' }}
+            </p>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Đóng
+            </button>
+        </div>
+    </div>
+</ng-template>

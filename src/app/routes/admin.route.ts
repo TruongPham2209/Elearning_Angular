@@ -1,12 +1,13 @@
 import { Routes } from '@angular/router';
 import * as Layout from '../layouts/';
 import * as AdminPage from '../pages/admin';
+import { adminGuard } from '../guards/admin.guard';
 
 export const adminRoutes: Routes = [
     {
         path: 'admin',
         component: Layout.Admin,
-        // canActivate: [],
+        canActivate: [adminGuard],
         children: [
             { path: '', redirectTo: '/admin/dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: AdminPage.Dashboard, title: 'Dashboard' },

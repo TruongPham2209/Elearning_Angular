@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { LessionResponse } from '../../../core/models/api/lession.model';
 import { AnnouncementFilter, AnnouncementResponse } from '../../../core/models/api/announcement.model';
@@ -9,6 +9,8 @@ import { ToastService } from '../../../core/services/ui/toast.service';
 import { ClassResponse } from '../../../core/models/api/class.model';
 import { ClassService } from '../../../core/services/api/class.service';
 import { Page } from '../../../core/models/types/page.interface';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { DocumentResponse } from '../../../core/models/api/document.model';
 @Component({
     selector: 'web-class-page',
     imports: [CommonModule, RouterModule],
@@ -24,18 +26,18 @@ export class WebClassPage implements OnInit {
         pageSize: 10,
     };
 
-    // state
-    isLoadingAnnouncements = false;
+    // Modal references
+    viewDocumentDetailModalRef: any;
+    viewAnnouncementDetailModalRef: any;
 
-    // Modal states
-    showAnnouncementModal = false;
-    showDocumentModal = false;
-    showAssignmentModal = false;
-    showAnnouncementDetailModal = false;
+    // state
+    isLoadingLessions = false;
+    isLoadingAnnouncements = false;
 
     // Form data
     currentClass!: ClassResponse;
     selectedAnnouncement: AnnouncementResponse | null = null;
+    selectedDocument: DocumentResponse | null = null;
     announcementFilter: AnnouncementFilter = {
         classId: '',
         page: 0,
@@ -44,6 +46,8 @@ export class WebClassPage implements OnInit {
 
     // Dropdown states
     expandedLessions: Set<string> = new Set();
+    loadedResources: Set<string> = new Set();
+    loadingResources: Set<string> = new Set();
     showAnnouncementDropdown = false;
 
     constructor(
@@ -52,6 +56,7 @@ export class WebClassPage implements OnInit {
         private readonly lessionService: LessionService,
         private readonly toastService: ToastService,
         private readonly classService: ClassService,
+        private readonly modalService: NgbModal,
     ) {}
 
     ngOnInit() {
@@ -79,11 +84,7 @@ export class WebClassPage implements OnInit {
 
     // Lession management
     toggleLession(lessionId: string) {
-        if (this.expandedLessions.has(lessionId)) {
-            this.expandedLessions.delete(lessionId);
-        } else {
-            this.expandedLessions.add(lessionId);
-        }
+        this.expandedLessions.has(lessionId) ? this.expandedLessions.delete(lessionId) : this.loadResource(lessionId);
     }
 
     isLessionExpanded(lessionId: string): boolean {
@@ -95,18 +96,73 @@ export class WebClassPage implements OnInit {
         this.showAnnouncementDropdown = !this.showAnnouncementDropdown;
     }
 
-    viewAnnouncementDetail(announcement: AnnouncementResponse) {
+    viewAnnouncementDetail(announcement: AnnouncementResponse, content: TemplateRef<any>) {
         this.selectedAnnouncement = announcement;
-        this.showAnnouncementDetailModal = true;
+        this.viewAnnouncementDetailModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
-    closeAnnouncementDetailModal() {
-        this.showAnnouncementDetailModal = false;
-        this.selectedAnnouncement = null;
+    viewDocumentDetail(document: DocumentResponse, content: TemplateRef<any>) {
+        this.selectedDocument = document;
+        this.viewDocumentDetailModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
     }
 
-    goToSubmissions(lessionId: string) {
-        this.router.navigate(['/assignments'], { queryParams: { lessionId } });
+    goToSubmissions(assignmentId: string) {
+        this.router.navigate(['/assignments'], { queryParams: { assignmentId } });
+    }
+
+    private loadResource(lessionId: string) {
+        this.expandedLessions.add(lessionId);
+        if (this.loadedResources.has(lessionId)) {
+            return;
+        }
+
+        if (this.loadingResources.has(lessionId)) {
+            console.warn('Resource is already being loaded:', lessionId);
+            return;
+        }
+
+        this.loadingResources.add(lessionId);
+        this.lessionService.getLessionResource(lessionId).subscribe({
+            next: (lession) => {
+                this.lessions = this.lessions.map((l) =>
+                    l.id === lessionId
+                        ? {
+                              ...l,
+                              assignments: lession.assignments,
+                              documents: lession.documents,
+                          }
+                        : l,
+                );
+                this.loadedResources.add(lessionId);
+                this.loadingResources.delete(lessionId);
+            },
+            error: (error) => {
+                this.toastService.show(
+                    'Lỗi trong quá trình tải tài nguyên buổi học. ' + (error.message || ''),
+                    'error',
+                );
+                this.loadingResources.delete(lessionId);
+            },
+        });
+    }
+
+    private loadLessions() {
+        if (!this.currentClass) {
+            console.error('Class ID is not set. Cannot load lessions.');
+            return;
+        }
+
+        this.isLoadingLessions = true;
+        this.lessionService.getLessionsByClassId(this.currentClass.id).subscribe({
+            next: (lessions) => {
+                this.lessions = lessions;
+                this.isLoadingLessions = false;
+            },
+            error: (error) => {
+                this.toastService.show('Lỗi trong quá trình tải buổi học. ' + (error.message || ''), 'error');
+                this.isLoadingLessions = false;
+            },
+        });
     }
 
     loadAnnouncements() {
@@ -131,17 +187,6 @@ export class WebClassPage implements OnInit {
                 console.error('Error fetching announcements:', error);
                 this.toastService.show('Không thể tải thông báo. ', 'error');
                 this.isLoadingAnnouncements = false;
-            },
-        });
-    }
-
-    private loadLessions() {
-        this.lessionService.getLessionsByClassId(this.currentClass.id).subscribe({
-            next: (lessions) => {
-                this.lessions = lessions;
-            },
-            error: (error) => {
-                this.toastService.show('Không thể tải các bài học. ' + (error.message || ''), 'error');
             },
         });
     }

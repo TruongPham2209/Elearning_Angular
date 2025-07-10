@@ -17,22 +17,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class WebAssignmentPage implements OnInit {
     removeSubmissionModal: any;
 
-    assignment: AssignmentResponse = {
-        id: '1',
-        title: 'Bài tập lớn: Xây dựng ứng dụng web với Angular',
-        content: `
-        <p>Sinh viên cần xây dựng một ứng dụng web hoàn chỉnh sử dụng Angular framework với các yêu cầu sau:</p>
-        <ul>
-            <li>Sử dụng Angular 19 với TypeScript</li>
-            <li>Thiết kế responsive với Bootstrap</li>
-            <li>Implement các chức năng CRUD cơ bản</li>
-            <li>Tích hợp API REST</li>
-            <li>Có validation và error handling</li>
-        </ul>
-        <p><strong>Lưu ý:</strong> Nộp file dưới dạng ZIP chứa source code và file README hướng dẫn chạy ứng dụng.</p>
-    `,
-        deadline: new Date('2026-12-31T23:59:59'),
-    };
+    assignment!: AssignmentResponse;
     submission: SubmissionResponse | null = null;
 
     // Để demo, có thể toggle giữa đã nộp và chưa nộp
@@ -53,18 +38,6 @@ export class WebAssignmentPage implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        if (this.isSubmitted) {
-            this.submission = {
-                id: 'sub1',
-                assignmentId: this.assignment.id,
-                studentCode: 'SV001',
-                fileName: 'baitap-angular-NguyenVanA.zip',
-                fileId: '#',
-                uploadAt: new Date('2024-12-15T14:30:00'),
-                isSubmitted: true,
-            };
-        }
-
         // Lấy assignmentId từ query params hoặc route params
         const assignmentId = this.route.snapshot.queryParamMap.get('assignmentId');
         if (!assignmentId) {
@@ -73,16 +46,16 @@ export class WebAssignmentPage implements OnInit {
             return;
         }
 
-        // this.assignmentService.getById(assignmentId).subscribe({
-        //     next: (response) => {
-        //         this.assignment = response;
-        //         this.loadSubmission();
-        //     },
-        //     error: (error) => {
-        //         this.toastService.show('Không thể tải thông tin bài tập! ' + (error.message || ''), 'error');
-        // this.router.navigate(['/home']);
-        //     },
-        // });
+        this.assignmentService.getById(assignmentId).subscribe({
+            next: (response) => {
+                this.assignment = response;
+                this.loadSubmission();
+            },
+            error: (error) => {
+                this.toastService.show('Không thể tải thông tin bài tập! ' + (error.message || ''), 'error');
+                // this.router.navigate(['/home']);
+            },
+        });
     }
 
     onDragOver(event: DragEvent) {
@@ -200,12 +173,14 @@ export class WebAssignmentPage implements OnInit {
     }
 
     isDeadlinePassed(): boolean {
-        return new Date() > this.assignment.deadline;
+        const isDeadlinePassed = new Date() > new Date(this.assignment.deadline);
+        return isDeadlinePassed;
     }
 
     getDeadlineStatus(): { class: string; text: string } {
         const now = new Date();
-        const deadline = this.assignment.deadline;
+        const deadline = new Date(this.assignment.deadline); // đảm bảo là Date
+
         const timeDiff = deadline.getTime() - now.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
@@ -220,10 +195,10 @@ export class WebAssignmentPage implements OnInit {
 
     private loadSubmission(): void {
         const assignmentId = this.assignment.id;
-        this.submissionService.getById(assignmentId).subscribe({
+        this.submissionService.getByAssignmentId(assignmentId).subscribe({
             next: (response) => {
                 this.submission = response;
-                this.isSubmitted = response.isSubmitted;
+                this.isSubmitted = response.submitted;
             },
             error: (error) => {
                 this.toastService.show('Không thể tải thông tin nộp bài! ' + (error.message || ''), 'error');

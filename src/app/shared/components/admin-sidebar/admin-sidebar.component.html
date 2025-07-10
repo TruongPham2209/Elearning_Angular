@@ -34,14 +34,14 @@
     </div>
 
     <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" *ngIf="isLoggedIn">
         <div class="user-info" *ngIf="!isCollapsed">
             <div class="user-avatar">
                 <img src="/images/default-avatar.png" alt="User Avatar" onerror="this.src='/images/error.png'" />
             </div>
             <div class="user-details">
-                <div class="user-name">Admin User</div>
-                <div class="user-role">Administrator</div>
+                <div class="user-name">{{ userInfo.username }}</div>
+                <div class="user-role">{{ userInfo.role }}</div>
             </div>
         </div>
         <div class="user-avatar-collapsed" *ngIf="isCollapsed" [title]="'Admin User - Administrator'">

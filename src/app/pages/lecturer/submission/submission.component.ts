@@ -130,11 +130,11 @@ export class LecturerSubmissionPage implements OnInit {
     }
 
     getActionText(action: string): string {
-        return action === 'submit' ? 'Nộp bài' : 'Gỡ bài';
+        return action === 'SUBMIT' ? 'Nộp bài' : 'Gỡ bài';
     }
 
     getActionBadgeClass(action: string): string {
-        return action === 'submit' ? 'badge-success' : 'badge-warning';
+        return action === 'SUBMIT' ? 'badge-success' : 'badge-warning';
     }
 
     getStatusText(isSubmitted: boolean): string {

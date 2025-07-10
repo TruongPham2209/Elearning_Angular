@@ -5,7 +5,7 @@ interface SubmissionResponse {
     fileId: string;
     assignmentId: string;
     uploadAt: Date;
-    isSubmitted: boolean;
+    submitted: boolean;
 }
 
 interface SubmissionFilter {

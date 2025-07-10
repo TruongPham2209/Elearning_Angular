@@ -45,8 +45,8 @@
                         <tr *ngFor="let submission of studentSubmissions.contents">
                             <td class="text-center fw-bold">{{ submission.studentCode }}</td>
                             <td class="text-center">
-                                <span class="badge" [ngClass]="getStatusBadgeClass(submission.isSubmitted)">
-                                    {{ getStatusText(submission.isSubmitted) }}
+                                <span class="badge" [ngClass]="getStatusBadgeClass(submission.submitted)">
+                                    {{ getStatusText(submission.submitted) }}
                                 </span>
                             </td>
                             <td class="text-center">

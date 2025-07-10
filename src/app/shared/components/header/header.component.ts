@@ -6,6 +6,9 @@ import { ManagerRole } from '../../../core/models/enum/role.model';
 import { adminNavigationItems, NavigationItem } from '../../../core/models/types/navigator.interface';
 import { AuthenticationService } from '../../../core/services/auth/authentication.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { UserService } from '../../../core/services/api/user.service';
+import { UserChangePasswordRequest, UserResponse } from '../../../core/models/api/user.model';
+import { ToastService } from '../../../core/services/ui/toast.service';
 
 @Component({
     selector: 'app-header',
@@ -20,6 +23,8 @@ export class HeaderComponent implements OnInit {
     navigationItems!: NavigationItem[];
     routeToHome: string = '/home';
     isCollapsed = true;
+    isLoggedIn: boolean = true;
+    userInfo!: UserResponse;
 
     // New properties for change password modal
     changePasswordForm!: FormGroup;
@@ -29,16 +34,19 @@ export class HeaderComponent implements OnInit {
     isChangingPassword: boolean = false;
     changePasswordError: string = '';
     changePasswordSuccess: string = '';
-    private modalRef!: NgbModalRef;
+    modalRef!: NgbModalRef;
 
     constructor(
         private readonly authService: AuthenticationService,
         private readonly modalService: NgbModal,
         private readonly fb: FormBuilder,
+        private readonly userService: UserService,
+        private readonly toastService: ToastService,
     ) {}
 
     ngOnInit(): void {
         this.initializeNavigation();
+        this.isLoggedIn = this.authService.isAuthenticated();
 
         this.changePasswordForm = this.fb.group(
             {
@@ -48,6 +56,18 @@ export class HeaderComponent implements OnInit {
             },
             { validators: this.passwordMatchValidator },
         );
+
+        if (this.isLoggedIn) {
+            this.userService.getProfile().subscribe({
+                next: (user) => {
+                    this.userInfo = user;
+                },
+                error: (err) => {
+                    console.error('Failed to fetch user profile:', err);
+                    this.toastService.show('Lỗi khi load thông tin user. ', 'error');
+                },
+            });
+        }
     }
 
     private passwordMatchValidator(form: FormGroup) {
@@ -82,19 +102,6 @@ export class HeaderComponent implements OnInit {
 
         // Student or other roles
         this.navigationItems = [];
-    }
-
-    getUserDisplayName(): string {
-        switch (this.managerRole) {
-            case ManagerRole.ADMIN:
-                return 'Admin';
-            case ManagerRole.LECTURER:
-                return 'Lecturer';
-            case ManagerRole.STUDENT:
-                return 'Student';
-            default:
-                return 'User';
-        }
     }
 
     onProfileClick(event: Event): void {
@@ -137,23 +144,23 @@ export class HeaderComponent implements OnInit {
             this.changePasswordSuccess = '';
 
             const formValue = this.changePasswordForm.value;
+            const changePasswordRequest: UserChangePasswordRequest = {
+                oldPassword: formValue.currentPassword,
+                newPassword: formValue.newPassword,
+            };
 
-            // // Call your API service here
-            // this.authService.changePassword(formValue.currentPassword, formValue.newPassword).subscribe({
-            //     next: (response) => {
-            //         this.isChangingPassword = false;
-            //         this.changePasswordSuccess = 'Password changed successfully!';
-
-            //         // Close modal after 2 seconds
-            //         setTimeout(() => {
-            //             this.modalRef.close();
-            //         }, 2000);
-            //     },
-            //     error: (error) => {
-            //         this.isChangingPassword = false;
-            //         this.changePasswordError = error.message || 'Failed to change password. Please try again.';
-            //     },
-            // });
+            // Call your API service here
+            this.userService.changePassword(changePasswordRequest).subscribe({
+                next: (response) => {
+                    this.toastService.show('Password changed successfully!', 'success');
+                    this.resetChangePasswordForm();
+                    this.changePasswordSuccess = 'Password changed successfully!';
+                },
+                error: (error) => {
+                    this.toastService.show('Failed to change password. ' + (error.message || ''), 'error');
+                    this.resetChangePasswordForm();
+                },
+            });
         }
     }
 
@@ -163,9 +170,11 @@ export class HeaderComponent implements OnInit {
         this.showCurrentPassword = false;
         this.showNewPassword = false;
         this.showConfirmPassword = false;
-        this.isChangingPassword = false;
         this.changePasswordError = '';
         this.changePasswordSuccess = '';
+
+        this.modalRef?.close();
+        this.isChangingPassword = false;
     }
 
     // Password strength checking methods

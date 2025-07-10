@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LessionResponse } from '../../models/api/lession.model';
 import { SubmissionFilter, SubmissionResponse } from '../../models/api/submission.model';
 import { Page } from '../../models/types/page.interface';
 import { BaseFetchingService } from './base.service';
@@ -15,13 +14,13 @@ export class SubmissionService {
         return this.fetchingService.post<Page<SubmissionResponse>>(`/api/submissions/filter`, filter);
     }
 
-    getById(id: string): Observable<SubmissionResponse> {
-        return this.fetchingService.get(`/api/submissions/${id}`);
+    getByAssignmentId(assignmentId: string): Observable<SubmissionResponse> {
+        return this.fetchingService.get(`/api/submissions/${assignmentId}`);
     }
 
     submit(assignmentId: string, file: File): Observable<SubmissionResponse> {
         const formData = new FormData();
-        formData.append('assignmentId', assignmentId);
+        formData.append('assignment', new Blob([JSON.stringify({ assignmentId })], { type: 'application/json' }));
         formData.append('file', file);
 
         return this.fetchingService.post(`/api/submissions/`, formData, true);

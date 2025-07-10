@@ -58,6 +58,7 @@
                             id="userDropdown"
                             ngbDropdownToggle
                             [attr.aria-expanded]="false"
+                            *ngIf="isLoggedIn && userInfo"
                         >
                             <img
                                 src="/images/default-avatar.png"
@@ -67,7 +68,7 @@
                                 class="rounded-circle me-2"
                                 onerror="this.src='/images/error.png'"
                             />
-                            <span class="d-none d-md-inline">{{ getUserDisplayName() }}</span>
+                            <span class="d-none d-md-inline">{{ userInfo.username || 'GUEST' }}</span>
                         </div>
 
                         <div class="dropdown-menu dropdown-menu-end" ngbDropdownMenu aria-labelledby="userDropdown">

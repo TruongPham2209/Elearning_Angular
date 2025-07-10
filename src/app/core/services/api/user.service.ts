@@ -15,7 +15,7 @@ export class UserService {
     }
 
     changePassword(req: UserChangePasswordRequest): Observable<void> {
-        return this.fetchingService.post('/api/accounts/change-password', req);
+        return this.fetchingService.put('/api/accounts/change-password', req);
     }
 
     createBatchingUsers(users: UserRequest[]): Observable<void> {
