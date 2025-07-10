@@ -5,6 +5,7 @@ import { AssignmentResponse } from '../../../core/models/api/assignment.model';
 import { SubmissionFilter, SubmissionLogResponse, SubmissionResponse } from '../../../core/models/api/submission.model';
 import { Page } from '../../../core/models/types/page.interface';
 import { AssignmentService } from '../../../core/services/api/assignment.service';
+import { FileService } from '../../../core/services/api/file.service';
 import { LoggingService } from '../../../core/services/api/logging.service';
 import { SubmissionService } from '../../../core/services/api/submission.service';
 import { ToastService } from '../../../core/services/ui/toast.service';
@@ -42,6 +43,7 @@ export class LecturerSubmissionPage implements OnInit {
         private readonly submissionService: SubmissionService,
         private readonly loggingService: LoggingService,
         private readonly route: ActivatedRoute,
+        private readonly fileService: FileService,
     ) {}
 
     ngOnInit(): void {
@@ -84,9 +86,22 @@ export class LecturerSubmissionPage implements OnInit {
     }
 
     downloadAllSubmissions(): void {
-        console.log('Downloading all submissions...');
-        // Implement download logic here
-        alert('Đang tải xuống tất cả bài nộp...');
+        if (this.isDownloadingAll) {
+            this.toastService.show('Đang tải xuống, vui lòng đợi.', 'info');
+            return;
+        }
+
+        this.isDownloadingAll = true;
+        this.fileService.downloadAllSubmissions(this.filter.assignmentId).subscribe({
+            next: () => {
+                this.toastService.show('Tải xuống tất cả bài nộp thành công.', 'success');
+                this.isDownloadingAll = false;
+            },
+            error: (error) => {
+                this.toastService.show('Không thể tải xuống tất cả bài nộp. ' + (error.message || ''), 'error');
+                this.isDownloadingAll = false;
+            },
+        });
     }
 
     getSubmissionHistories(studentCode: string): SubmissionLogResponse[] {
@@ -118,10 +133,17 @@ export class LecturerSubmissionPage implements OnInit {
     }
 
     downloadFile(student: SubmissionResponse): void {
-        if (student.fileId) {
-            console.log(`Downloading file: ${student.fileName} for student: ${student.studentCode}`);
-            this.toastService.show(`Đang tải xuống file: ${student.fileName}`, 'info');
+        if (!student.fileId) {
+            this.toastService.show('Không có file để tải xuống.', 'warning');
+            return;
         }
+
+        this.fileService.downloadFileById(student.fileId).subscribe({
+            next: () => {},
+            error: (error) => {
+                this.toastService.show('Không thể tải xuống tệp. ' + (error.message || ''), 'error');
+            },
+        });
     }
 
     closeModal(): void {

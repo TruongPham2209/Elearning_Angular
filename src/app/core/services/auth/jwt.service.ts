@@ -48,7 +48,7 @@ export class JwtService {
     }
 
     private setTokens(jwt: JwtResponse): void {
-        localStorage.setItem('access_token', jwt.access_token);
+        sessionStorage.setItem('access_token', jwt.access_token);
     }
 
     private redirectToHome(accessToken: string): void {

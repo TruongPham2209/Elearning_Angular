@@ -96,13 +96,21 @@
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div class="flex-grow-1">
-                                                        <h6 class="card-title">{{ document.title }}</h6>
-                                                        <p class="card-text" [innerHTML]="document.content"></p>
+                                                        <h6
+                                                            class="card-title"
+                                                            style="cursor: pointer"
+                                                            (click)="viewDocumentDetail(document, documentDetailModal)"
+                                                        >
+                                                            {{ document.title }}
+                                                        </h6>
                                                         <p class="card-text">
                                                             <strong>File đính kèm: </strong>
-                                                            <a href="#" class="text-decoration-none">{{
-                                                                document.fileName
-                                                            }}</a>
+                                                            <span
+                                                                (click)="downloadFile(document.fileId)"
+                                                                style="cursor: pointer"
+                                                                class="text-decoration-underline text-info"
+                                                                >{{ document.fileName }}</span
+                                                            >
                                                         </p>
                                                         <small class="text-muted">
                                                             <i class="bi bi-clock me-1 text-primary"></i>
@@ -314,34 +322,6 @@
     </div>
 </ng-template>
 
-<!-- Modal chi tiết thông báo - Improved -->
-<ng-template #announcementDetailModal let-modal>
-    <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-info px-4">
-            <h5 class="modal-title fw-semibold text-white">
-                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedAnnouncement?.title }}
-            </h5>
-            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
-        </div>
-        <div class="modal-body p-4">
-            <div class="mb-4">
-                <div class="border p-3 bg-light rounded">
-                    <div class="preformatted-text" [innerHTML]="selectedAnnouncement?.content"></div>
-                </div>
-            </div>
-            <div class="text-muted small">
-                <i class="bi bi-calendar me-1"></i>
-                Ngày tạo: {{ selectedAnnouncement?.createdAt | date: 'dd/MM/yyyy HH:mm' }}
-            </div>
-        </div>
-        <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
-                Đóng
-            </button>
-        </div>
-    </div>
-</ng-template>
-
 <!-- Modal tạo tài liệu - Improved -->
 <ng-template #createDocumentModal let-modal>
     <div class="modal-content border-0 shadow-lg">
@@ -541,7 +521,7 @@
     </div>
 </ng-template>
 
-<!-- Delete Confirmation Modal - Improved -->
+<!-- Delete Assignment Modal - Improved -->
 <ng-template #deleteAssignmentModal let-modal>
     <div class="modal-content border-0 shadow-lg">
         <div class="modal-header bg-danger px-4">
@@ -620,6 +600,73 @@
                     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     Đang xóa...
                 </ng-template>
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Modal chi tiết thông báo - Improved -->
+<ng-template #announcementDetailModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-info px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedAnnouncement?.title }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-4">
+                <div class="border p-3 bg-light rounded">
+                    <div class="preformatted-text" [innerHTML]="selectedAnnouncement?.content"></div>
+                </div>
+            </div>
+            <div class="text-muted small">
+                <i class="bi bi-calendar me-1"></i>
+                Ngày tạo: {{ selectedAnnouncement?.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+            </div>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Đóng
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Modal chi tiết tài liệu - Improved -->
+<ng-template #documentDetailModal let-modal>
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-info px-4">
+            <h5 class="modal-title fw-semibold text-white">
+                <i class="bi bi-file-earmark-text me-2"></i>{{ selectedDocument?.title }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss('cancel')"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="mb-4">
+                <div class="border p-3 bg-light rounded">
+                    <div class="preformatted-text" [innerHTML]="selectedDocument?.content"></div>
+                </div>
+            </div>
+            <p class="card-text">
+                <i class="bi bi-file-earmark me-1 text-info"></i>
+                <strong>File đính kèm: </strong>
+                <span
+                    (click)="downloadFile(selectedDocument?.fileId)"
+                    class="text-decoration-underline text-info-emphasis"
+                    style="cursor: pointer"
+                    >{{ selectedDocument?.fileName }}</span
+                >
+            </p>
+            <p class="card-text">
+                <i class="bi bi-calendar me-1 text-info"></i>
+                <strong>Ngày tạo: </strong>
+                {{ selectedDocument?.uploadAt | date: 'dd/MM/yyyy' }}
+            </p>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary rounded-2 px-4" (click)="modal.dismiss('cancel')">
+                Đóng
             </button>
         </div>
     </div>

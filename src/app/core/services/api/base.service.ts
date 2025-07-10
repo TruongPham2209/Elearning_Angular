@@ -30,6 +30,7 @@ export class BaseFetchingService {
     }
 
     private handleError(error: HttpErrorResponse): Observable<never> {
+        console.error('An error occurred when fetching data:', error);
         console.error(
             `Error Status: ${error.status}\nMessage: ${error.message}\nStack: ${error.error?.stack || 'No stack trace available'}`,
         );

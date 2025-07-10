@@ -11,6 +11,7 @@ import { ClassService } from '../../../core/services/api/class.service';
 import { Page } from '../../../core/models/types/page.interface';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DocumentResponse } from '../../../core/models/api/document.model';
+import { FileService } from '../../../core/services/api/file.service';
 @Component({
     selector: 'web-class-page',
     imports: [CommonModule, RouterModule],
@@ -57,6 +58,7 @@ export class WebClassPage implements OnInit {
         private readonly toastService: ToastService,
         private readonly classService: ClassService,
         private readonly modalService: NgbModal,
+        private readonly fileService: FileService,
     ) {}
 
     ngOnInit() {
@@ -78,6 +80,22 @@ export class WebClassPage implements OnInit {
             error: (error) => {
                 this.toastService.show('Không thể tải thông tin lớp học. ' + (error.message || ''), 'error');
                 this.router.navigate(['/home']);
+            },
+        });
+    }
+
+    downloadFile(fileId: string | undefined) {
+        if (!fileId) {
+            this.toastService.show('Không tìm thấy tệp để tải xuống.', 'error');
+            return;
+        }
+
+        this.fileService.downloadFileById(fileId).subscribe({
+            next: () => {
+                this.toastService.show('Tải xuống thành công.', 'success');
+            },
+            error: (error) => {
+                this.toastService.show('Không thể tải xuống tệp. ' + (error.message || ''), 'error');
             },
         });
     }

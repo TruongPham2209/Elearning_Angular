@@ -16,6 +16,7 @@ import { ToastService } from '../../../core/services/ui/toast.service';
 import { LessionService } from './../../../core/services/api/lession.service';
 import { ClassResponse } from '../../../core/models/api/class.model';
 import { ClassService } from '../../../core/services/api/class.service';
+import { FileService } from '../../../core/services/api/file.service';
 @Component({
     selector: 'lecturer-class-page',
     imports: [CommonModule, RouterModule, FormsModule, NgbModule, NgxEditorComponent, NgxEditorMenuComponent],
@@ -34,6 +35,8 @@ export class LecturerClassPage implements OnInit, OnDestroy {
 
     deleteAssignmentModalRef: any;
     deleteDocumentModalRef: any;
+
+    viewDocumentDetailModalRef: any;
     viewAnnouncementDetailModalRef: any;
 
     lessions: LessionResponse[] = [];
@@ -56,12 +59,13 @@ export class LecturerClassPage implements OnInit, OnDestroy {
     currentClass: ClassResponse | null = null;
     assignmentToDelete: AssignmentResponse | null = null;
     documentToDelete: DocumentResponse | null = null;
+    selectedAnnouncement: AnnouncementResponse | null = null;
+    selectedDocument: DocumentResponse | null = null;
 
     // Form data
     newAnnouncement: AnnouncementRequest = { title: '', content: '', classId: '' };
     newDocument: DocumentRequest = { lessionId: '', title: '', content: '' };
     newAssignment: AssignmentRequest = { lessionId: '', title: '', content: '', deadline: new Date() };
-    selectedAnnouncement: AnnouncementResponse | null = null;
 
     // Dropdown states
     expandedLessions: Set<string> = new Set();
@@ -78,6 +82,7 @@ export class LecturerClassPage implements OnInit, OnDestroy {
         private readonly assignmentService: AssignmentService,
         private readonly lessionService: LessionService,
         private readonly classService: ClassService,
+        private readonly fileService: FileService,
     ) {}
 
     ngOnInit() {
@@ -181,6 +186,11 @@ export class LecturerClassPage implements OnInit, OnDestroy {
     }
 
     // Document management
+    viewDocumentDetail(document: DocumentResponse, content: TemplateRef<any>) {
+        this.selectedDocument = document;
+        this.viewDocumentDetailModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
+    }
+
     openDocumentModal(lessionId: string, content: TemplateRef<any>) {
         this.newDocument = { lessionId, title: '', content: '' };
         this.createDocumentModalRef = this.modalService.open(content, { centered: true, size: 'lg' });
@@ -351,6 +361,22 @@ export class LecturerClassPage implements OnInit, OnDestroy {
             !this.newAssignment.deadline ||
             this.newAssignment.deadline < new Date()
         );
+    }
+
+    downloadFile(fileId: string | undefined) {
+        if (!fileId) {
+            this.toastService.show('Không tìm thấy tệp để tải xuống.', 'error');
+            return;
+        }
+
+        this.fileService.downloadFileById(fileId).subscribe({
+            next: () => {
+                this.toastService.show('Tải xuống thành công.', 'success');
+            },
+            error: (error) => {
+                this.toastService.show('Không thể tải xuống tệp. ' + (error.message || ''), 'error');
+            },
+        });
     }
 
     private loadResource(lessionId: string) {
