@@ -22,8 +22,8 @@ export class WebClassPage implements OnInit {
     lessions: LessionResponse[] = [];
     announcements: Page<AnnouncementResponse> = {
         contents: [],
-        totalPages: 0,
-        currentPage: 0,
+        totalPages: 1,
+        currentPage: 1,
         pageSize: 10,
     };
 
@@ -184,6 +184,7 @@ export class WebClassPage implements OnInit {
     }
 
     loadAnnouncements() {
+        console.log('Loading announcements with filter:', this.announcementFilter);
         if (this.isLoadingAnnouncements) return;
         if (this.announcementFilter.page === this.announcements.currentPage) return;
 

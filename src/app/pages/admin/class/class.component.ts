@@ -144,9 +144,7 @@ export class AdminClassPage implements OnInit {
         this.isLoading = true;
         console.log('Selected semester ID:', this.selectedSemesterId);
 
-        setTimeout(() => {
-            this.isLoading = false;
-        }, 500);
+        this.loadClasses();
     }
 
     viewStudents(classId: string): void {

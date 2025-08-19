@@ -188,7 +188,7 @@
                     </div>
                 </div>
                 <div class="card-body" [class.d-none]="!showAnnouncementDropdown">
-                    <div *ngIf="announcements.contents" class="text-muted">Chưa có thông báo nào</div>
+                    <div *ngIf="announcements.contents.length === 0" class="text-muted">Chưa có thông báo nào</div>
 
                     <!-- Hiệu ưng loading ở đây -->
                     <div *ngIf="isLoadingAnnouncements" class="text-center mb-3">
